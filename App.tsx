@@ -10,7 +10,11 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const BASE_DIM = 140;
 const MIN_DIM = 75;
 const MAX_DIM = 210;
-const PLAYER_CENTER_Y = SCREEN_H * 0.7;
+const PLAYER_CENTER_X = SCREEN_W / 2;
+const PLAYER_CENTER_Y = SCREEN_H * 0.5;
+
+const DIRECTIONS = ['top', 'bottom', 'left', 'right'] as const;
+type Direction = typeof DIRECTIONS[number];
 
 const TARGET_TYPES = ['tall', 'wide', 'circle'] as const;
 type TargetType = typeof TARGET_TYPES[number];
@@ -345,7 +349,7 @@ const MochiPattern = ({ skinId, isDead }: { skinId: string, isDead: boolean }) =
 };
 
 // ─── Kawaii Mochi Face ───
-const MochiDrawnFace = ({ isDead, squishType }: { isDead: boolean, squishType: 'tall' | 'wide' | 'normal' }) => {
+const MochiDrawnFace = ({ isDead, squishType, isHappy }: { isDead: boolean, squishType: 'tall' | 'wide' | 'normal', isHappy: boolean }) => {
   if (isDead) {
     return (
       <View style={{ position: 'absolute', top: '30%', alignSelf: 'center', alignItems: 'center' }}>
@@ -358,6 +362,21 @@ const MochiDrawnFace = ({ isDead, squishType }: { isDead: boolean, squishType: '
           ))}
         </View>
         <Text style={{ fontSize: 18, color: '#8B7E74', marginTop: 2, fontWeight: '700' }}>～</Text>
+      </View>
+    );
+  }
+  if (isHappy) {
+    const gap = squishType === 'wide' ? 40 : 24;
+    return (
+      <View style={{ position: 'absolute', top: squishType === 'tall' ? '22%' : '30%', alignSelf: 'center', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', gap, alignItems: 'center' }}>
+          {[0, 1].map(i => (
+            <View key={i} style={{ width: 20, height: 10, borderBottomLeftRadius: 10, borderBottomRightRadius: 10, backgroundColor: '#4A3F35', overflow: 'hidden' }}>
+              <View style={{ position: 'absolute', top: -8, left: 0, right: 0, height: 10, backgroundColor: '#4A3F35', borderRadius: 10 }} />
+            </View>
+          ))}
+        </View>
+        <Text style={{ fontSize: squishType === 'wide' ? 16 : 18, color: '#C4907A', marginTop: squishType === 'tall' ? 4 : 0, fontWeight: '600' }}>▽</Text>
       </View>
     );
   }
@@ -387,6 +406,7 @@ export default function App() {
   const [combo, setCombo] = useState(0);
   const [bestCombo, setBestCombo] = useState(0);
   const [targetShape, setTargetShape] = useState<TargetType>('circle');
+  const [currentDirection, setCurrentDirection] = useState<Direction>('top');
   const [highScore, setHighScore] = useState(0);
   const [showTutorial, setShowTutorial] = useState(true);
   const [showBurst, setShowBurst] = useState(false);
@@ -417,6 +437,8 @@ export default function App() {
 
   const gameStateRef = useRef(gameState); gameStateRef.current = gameState;
   const targetShapeRef = useRef(targetShape); targetShapeRef.current = targetShape;
+  const directionRef = useRef<Direction>('top');
+  const levelRef = useRef(1);
   const scoreRef = useRef(score); scoreRef.current = score;
   const passedRef = useRef(false);
   const comboRef = useRef(combo); comboRef.current = combo;
@@ -455,6 +477,9 @@ export default function App() {
 
   const [squishType, setSquishType] = useState<'tall' | 'wide' | 'normal'>('normal');
   const [displayScore, setDisplayScore] = useState(0);
+  const [levelUpMsg, setLevelUpMsg] = useState('FASTER!');
+  const [isHappy, setIsHappy] = useState(false);
+  const happyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ─── Audio Players ───
   const bgmPlayer = useAudioPlayer('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3');
@@ -543,9 +568,9 @@ export default function App() {
   }, [squishType]);
 
   // Track fallAnim value — read _value directly in collision loop for reliability
-  const fallYRef = useRef(-300);
+  const fallPosRef = useRef(-300);
   useEffect(() => {
-    const id = fallAnim.addListener(({ value }) => { fallYRef.current = value; });
+    const id = fallAnim.addListener(({ value }) => { fallPosRef.current = value; });
     return () => fallAnim.removeListener(id);
   }, []);
 
@@ -555,10 +580,17 @@ export default function App() {
   checkCollisionRef.current = () => {
     if (gameStateRef.current !== 'PLAYING') return;
 
-    const curY = (fallAnim as any)._value as number;
-    const threshold = PLAYER_CENTER_Y - 30;
+    const curVal = (fallAnim as any)._value as number;
+    const dir = directionRef.current;
+    let hasReachedMochi = false;
+    switch (dir) {
+      case 'top': hasReachedMochi = curVal > PLAYER_CENTER_Y - 30; break;
+      case 'bottom': hasReachedMochi = curVal < PLAYER_CENTER_Y + 30; break;
+      case 'left': hasReachedMochi = curVal > PLAYER_CENTER_X - 30; break;
+      case 'right': hasReachedMochi = curVal < PLAYER_CENTER_X + 30; break;
+    }
 
-    if (curY > threshold && !passedRef.current) {
+    if (hasReachedMochi && !passedRef.current) {
       passedRef.current = true;
       const curH = heightRef.current;
       let isMatch = false;
@@ -572,6 +604,11 @@ export default function App() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 100);
 
+        // Happy face on match
+        if (happyTimerRef.current) clearTimeout(happyTimerRef.current);
+        setIsHappy(true);
+        happyTimerRef.current = setTimeout(() => setIsHappy(false), 400);
+
         popSfx.seekTo(0);
         popSfx.play();
 
@@ -583,7 +620,14 @@ export default function App() {
         setScore(s => {
           const ns = s + (isDouble ? 2 : 1); scoreRef.current = ns;
           if (ns % 3 === 0) {
-            setLevel(l => l + 1);
+            setLevel(l => {
+              const newLvl = l + 1;
+              levelRef.current = newLvl;
+              if (newLvl === 3) setLevelUpMsg('↕ FROM BELOW!');
+              else if (newLvl === 5) setLevelUpMsg('↔ ALL SIDES!');
+              else setLevelUpMsg('FASTER!');
+              return newLvl;
+            });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             levelUpAnim.setValue(0);
             Animated.sequence([
@@ -618,6 +662,8 @@ export default function App() {
           // Continue playing — shield consumed
         } else {
           gameStateRef.current = 'OVER';
+          setIsHappy(false);
+          if (happyTimerRef.current) clearTimeout(happyTimerRef.current);
           const fs = scoreRef.current; const fc = comboRef.current;
           setBestCombo(fc);
           fallAnim.stopAnimation();
@@ -668,8 +714,27 @@ export default function App() {
 
   const startFallRef = useRef<() => void>(undefined);
   startFallRef.current = () => {
-    fallAnim.setValue(-250);
-    fallYRef.current = -250;
+    // Pick direction based on level
+    const lvl = levelRef.current;
+    const availDirs: Direction[] =
+      lvl <= 2 ? ['top'] :
+      lvl <= 4 ? ['top', 'bottom'] :
+      [...DIRECTIONS];
+    const dir = availDirs[Math.floor(Math.random() * availDirs.length)];
+    setCurrentDirection(dir);
+    directionRef.current = dir;
+
+    // Compute start/end by direction
+    let startVal: number, endVal: number;
+    switch (dir) {
+      case 'top': startVal = -250; endVal = SCREEN_H + 150; break;
+      case 'bottom': startVal = SCREEN_H + 250; endVal = -150; break;
+      case 'left': startVal = -250; endVal = SCREEN_W + 150; break;
+      case 'right': startVal = SCREEN_W + 250; endVal = -150; break;
+    }
+
+    fallAnim.setValue(startVal);
+    fallPosRef.current = startVal;
     passedRef.current = false;
     let dur = 3000 - (Math.floor(scoreRef.current / 3) + 1) * 150;
     if (dur < 1000) dur = 1000;
@@ -678,7 +743,7 @@ export default function App() {
       dur *= 2;
       slowCountRef.current--;
     }
-    Animated.timing(fallAnim, { toValue: SCREEN_H + 150, duration: dur, easing: Easing.linear, useNativeDriver: false }).start(({ finished }) => {
+    Animated.timing(fallAnim, { toValue: endVal, duration: dur, easing: Easing.linear, useNativeDriver: false }).start(({ finished }) => {
       if (finished && gameStateRef.current === 'PLAYING') {
         const nextTarget = TARGET_TYPES[Math.floor(Math.random() * TARGET_TYPES.length)];
         setTargetShape(nextTarget);
@@ -714,7 +779,7 @@ export default function App() {
 
     fallAnim.stopAnimation();
     fallAnim.setValue(-250);
-    fallYRef.current = -250;
+    fallPosRef.current = -250;
 
     screenFadeAnim.setValue(0);
     Animated.timing(screenFadeAnim, { toValue: 1, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
@@ -722,6 +787,9 @@ export default function App() {
     setGameState('PLAYING'); setScore(0); setLevel(1); setCombo(0); setBestCombo(0); setDisplayScore(0);
     setTargetShape('circle');
     targetShapeRef.current = 'circle';
+    setCurrentDirection('top');
+    directionRef.current = 'top';
+    levelRef.current = 1;
 
     heightAnim.setValue(BASE_DIM); popAnim.setValue(1); wobbleAnim.setValue(0);
     if (showTutorial) { setShowTutorial(false); AsyncStorage.setItem('tutorialDone', 'true'); }
@@ -738,6 +806,9 @@ export default function App() {
     setGameState('START'); setScore(0); setLevel(1); setCombo(0); setBestCombo(0);
     scoreRef.current = 0; heightAnim.setValue(BASE_DIM); popAnim.setValue(1); fallAnim.setValue(-300);
     gameStateRef.current = 'START';
+    setCurrentDirection('top');
+    directionRef.current = 'top';
+    levelRef.current = 1;
     setAdContinueUsed(false);
   };
 
@@ -750,10 +821,12 @@ export default function App() {
 
     fallAnim.stopAnimation();
     fallAnim.setValue(-250);
-    fallYRef.current = -250;
+    fallPosRef.current = -250;
     heightAnim.setValue(BASE_DIM); wobbleAnim.setValue(0);
 
     setGameState('PLAYING'); setCombo(0);
+    setCurrentDirection('top');
+    directionRef.current = 'top';
     const nextTarget = TARGET_TYPES[Math.floor(Math.random() * TARGET_TYPES.length)];
     setTargetShape(nextTarget);
     targetShapeRef.current = nextTarget;
@@ -864,13 +937,18 @@ export default function App() {
       {/* Falling Target */}
       {gameState === 'PLAYING' && (
         <Animated.View style={{
-          position: 'absolute', top: 0, alignSelf: 'center',
+          position: 'absolute',
+          ...(currentDirection === 'left' || currentDirection === 'right'
+            ? { left: 0, top: PLAYER_CENTER_Y - currentTarget.h / 2 }
+            : { top: 0, alignSelf: 'center' as const }),
           width: currentTarget.w, height: currentTarget.h,
           borderRadius: currentTarget.w === currentTarget.h ? 999 : 50,
           borderWidth: 12, borderStyle: 'dashed', borderColor: currentTarget.color,
           backgroundColor: 'rgba(255,255,255,0.5)', justifyContent: 'center', alignItems: 'center',
           shadowColor: currentTarget.color, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 15,
-          transform: [{ translateY: fallAnim }, { translateY: -currentTarget.h / 2 }, { rotate: targetRotate }],
+          transform: currentDirection === 'left' || currentDirection === 'right'
+            ? [{ translateX: fallAnim }, { translateX: -currentTarget.w / 2 }, { rotate: targetRotate }]
+            : [{ translateY: fallAnim }, { translateY: -currentTarget.h / 2 }, { rotate: targetRotate }],
           zIndex: 10,
         }}>
           <Text style={[styles.frameLabel, { color: currentTarget.color }]}>{currentTarget.label}</Text>
@@ -892,7 +970,7 @@ export default function App() {
             <MochiPattern skinId={currentSkin.id} isDead={isDead} />
             <View style={[styles.blush, { left: squishType === 'wide' ? '15%' : '10%', backgroundColor: currentSkin.blush }]} />
             <View style={[styles.blush, { right: squishType === 'wide' ? '15%' : '10%', backgroundColor: currentSkin.blush }]} />
-            <MochiDrawnFace isDead={isDead} squishType={squishType} />
+            <MochiDrawnFace isDead={isDead} squishType={squishType} isHappy={isHappy} />
           </View>
         </Animated.View>
       ) : (
@@ -909,7 +987,7 @@ export default function App() {
             <MochiPattern skinId={currentSkin.id} isDead={false} />
             <View style={[styles.blush, { left: '10%', backgroundColor: currentSkin.blush }]} />
             <View style={[styles.blush, { right: '10%', backgroundColor: currentSkin.blush }]} />
-            <MochiDrawnFace isDead={false} squishType="normal" />
+            <MochiDrawnFace isDead={false} squishType="normal" isHappy={false} />
           </View>
         </Animated.View>
       )}
@@ -940,7 +1018,7 @@ export default function App() {
                 opacity: levelUpAnim,
                 transform: [{ translateY: levelUpAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }, { scale: levelUpAnim }]
               }]}>
-                <Text style={styles.levelUpText}>FASTER!</Text>
+                <Text style={styles.levelUpText}>{levelUpMsg}</Text>
               </Animated.View>
             </View>
           </Animated.View>
