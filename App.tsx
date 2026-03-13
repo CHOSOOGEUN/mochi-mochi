@@ -1,19 +1,36 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, Animated, PanResponder, Dimensions, TouchableOpacity, Easing, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Animated, PanResponder, Dimensions, TouchableOpacity, Easing, ScrollView, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useAudioPlayer } from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import mobileAds, {
+  InterstitialAd,
+  RewardedAd,
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+  AdEventType,
+  RewardedAdEventType,
+} from 'react-native-google-mobile-ads';
+import {
+  initConnection,
+  purchaseUpdatedListener,
+  requestPurchase,
+  finishTransaction,
+  fetchProducts,
+  type Purchase as IapPurchase,
+} from 'react-native-iap';
+
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 const BASE_DIM = 140;
 const MIN_DIM = 75;
 const MAX_DIM = 210;
-const PLAYER_CENTER_X = SCREEN_W / 2;
 const PLAYER_CENTER_Y = SCREEN_H * 0.5;
 
-const DIRECTIONS = ['top', 'bottom', 'left', 'right'] as const;
+const DIRECTIONS = ['top', 'bottom'] as const;
 type Direction = typeof DIRECTIONS[number];
 
 const TARGET_TYPES = ['tall', 'wide', 'circle'] as const;
@@ -27,6 +44,34 @@ const TARGETS = {
 
 const PARTICLE_COLORS = ['#8DB580', '#F0C75E', '#E8A0B4', '#FFF9F0', '#D4C4B0'];
 const SAKURA_POSITIONS: number[] = Array.from({ length: 15 }, () => Math.random() * SCREEN_W);
+
+
+// ─── IAP Configuration ───
+const IAP_SKUS = {
+  coins100: 'mochi_coins_100',
+  coins500: 'mochi_coins_500',
+  coins1500: 'mochi_coins_1500',
+  removeAds: 'mochi_remove_ads',
+};
+
+const IAP_BUNDLES = [
+  { sku: IAP_SKUS.coins100, label: '🍡 100 Coins', price: '$0.99', coins: 100 },
+  { sku: IAP_SKUS.coins500, label: '🍡 500 Coins', price: '$3.99', coins: 500 },
+  { sku: IAP_SKUS.coins1500, label: '🍡 1500 Coins', price: '$9.99', coins: 1500 },
+  { sku: IAP_SKUS.removeAds, label: '🚫 Remove Ads', price: '$2.99', coins: 0 },
+];
+
+// ─── Ads Configuration ───
+const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyy';
+const rewardedAdUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-xxxxxxxxxxxxx/zzzzzzzzz';
+const bannerAdUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : 'ca-app-pub-xxxxxxxxxxxxx/wwwwwwwww';
+
+const interstitial = InterstitialAd.createForAdRequest(interstitialAdUnitId, { requestNonPersonalizedAdsOnly: true });
+const rewarded = RewardedAd.createForAdRequest(rewardedAdUnitId, { requestNonPersonalizedAdsOnly: true });
+
+mobileAds().initialize().then(adapterStatuses => {
+  console.log('AdMob Initialized:', adapterStatuses);
+});
 
 // ─── Skin System ───
 type MochiSkin = {
@@ -43,16 +88,16 @@ type MochiSkin = {
 
 const SKINS: MochiSkin[] = [
   { id: 'classic', name: 'Plain Mochi', body: '#FFF9F0', border: '#F0E6D8', shadow: '#D4C4B0', blush: 'rgba(220,160,130,0.45)', deadBody: '#E8E0D8', deadBorder: '#C4B5A5', price: 0 },
-  { id: 'matcha', name: 'Matcha Mochi', body: '#E8F5E0', border: '#C8DEB8', shadow: '#A8C098', blush: 'rgba(180,200,140,0.4)', deadBody: '#D8E0D0', deadBorder: '#B0BEA0', price: 30 },
-  { id: 'sakura', name: 'Sakura Mochi', body: '#FFE8EE', border: '#F0C8D4', shadow: '#D4A8B4', blush: 'rgba(240,140,160,0.4)', deadBody: '#E8D8DC', deadBorder: '#C4B0B8', price: 80 },
-  { id: 'yomogi', name: 'Yomogi Mochi', body: '#E0ECD0', border: '#B8D0A0', shadow: '#98B080', blush: 'rgba(160,190,120,0.4)', deadBody: '#D0D8C8', deadBorder: '#A8B898', price: 150 },
-  { id: 'anko', name: 'Anko Mochi', body: '#E8D8D0', border: '#C4A898', shadow: '#A08878', blush: 'rgba(180,140,120,0.4)', deadBody: '#D8CCC4', deadBorder: '#B0A090', price: 250 },
-  { id: 'yuzu', name: 'Yuzu Mochi', body: '#FFF8D8', border: '#F0E0A8', shadow: '#D4C488', blush: 'rgba(220,190,100,0.4)', deadBody: '#E8E0D0', deadBorder: '#C4B8A0', price: 400 },
+  { id: 'matcha', name: 'Matcha Mochi', body: '#E8F5E0', border: '#C8DEB8', shadow: '#A8C098', blush: 'rgba(180,200,140,0.4)', deadBody: '#D8E0D0', deadBorder: '#B0BEA0', price: 80 },
+  { id: 'sakura', name: 'Sakura Mochi', body: '#FFE8EE', border: '#F0C8D4', shadow: '#D4A8B4', blush: 'rgba(240,140,160,0.4)', deadBody: '#E8D8DC', deadBorder: '#C4B0B8', price: 200 },
+  { id: 'yomogi', name: 'Yomogi Mochi', body: '#E0ECD0', border: '#B8D0A0', shadow: '#98B080', blush: 'rgba(160,190,120,0.4)', deadBody: '#D0D8C8', deadBorder: '#A8B898', price: 400 },
+  { id: 'anko', name: 'Anko Mochi', body: '#E8D8D0', border: '#C4A898', shadow: '#A08878', blush: 'rgba(180,140,120,0.4)', deadBody: '#D8CCC4', deadBorder: '#B0A090', price: 700 },
+  { id: 'yuzu', name: 'Yuzu Mochi', body: '#FFF8D8', border: '#F0E0A8', shadow: '#D4C488', blush: 'rgba(220,190,100,0.4)', deadBody: '#E8E0D0', deadBorder: '#C4B8A0', price: 1200 },
 ];
 
 // ─── Game Items ───
 type GameItem = {
-  id: string;
+  id: keyof Inventory;
   name: string;
   desc: string;
   icon: string;
@@ -251,7 +296,7 @@ const Furin = ({ swayAnim }: { swayAnim: Animated.Value }) => {
 };
 
 // ─── Background Scene (Full coverage) ───
-const BackgroundIllustrations = () => (
+const BackgroundIllustrations = React.memo(() => (
   <View style={StyleSheet.absoluteFill} pointerEvents="none">
     <CloudPuff x={-10} y={SCREEN_H * 0.04} w={80} opacity={0.22} />
     <CloudPuff x={SCREEN_W * 0.55} y={SCREEN_H * 0.1} w={70} opacity={0.18} />
@@ -338,7 +383,7 @@ const BackgroundIllustrations = () => (
     <PaperLantern x={SCREEN_W * 0.92} y={SCREEN_H * 0.35} scale={0.5} opacity={0.1} color="rgba(240, 180, 60, OPACITY)" />
     <PaperLantern x={SCREEN_W * 0.02} y={SCREEN_H * 0.6} scale={0.55} opacity={0.1} />
   </View>
-);
+));
 
 // ─── Falling Sakura Petal (animated) ───
 const FallingSakura = React.memo(({ delay, startX }: { delay: number, startX: number }) => {
@@ -416,8 +461,7 @@ const FloatingParticle = React.memo(({ delay, x }: { delay: number, x: number })
 // ─── Burst Particle ───
 const BurstParticle = ({ angle, color, anim }: { angle: number, color: string, anim: Animated.Value }) => {
   const rad = (angle * Math.PI) / 180;
-  const dist = 80 + Math.random() * 40;
-  const size = 6 + Math.random() * 8;
+  const { dist, size } = useRef({ dist: 80 + Math.random() * 40, size: 6 + Math.random() * 8 }).current;
   return (
     <Animated.View style={{
       position: 'absolute',
@@ -443,15 +487,15 @@ const MochiPattern = ({ skinId, isDead }: { skinId: string, isDead: boolean }) =
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {/* Matcha powder dusting */}
-          {[{t:48,l:18,s:5},{t:52,l:35,s:3},{t:55,l:60,s:4},{t:50,l:75,s:3},{t:58,l:25,s:4},{t:56,l:50,s:3},{t:53,l:70,s:5}].map((p,i) => (
-            <View key={i} style={{ position:'absolute', top:`${p.t}%` as any, left:`${p.l}%` as any, width:p.s, height:p.s, borderRadius:p.s/2, backgroundColor:'rgba(100,160,80,0.2)' }} />
+          {[{ t: 48, l: 18, s: 5 }, { t: 52, l: 35, s: 3 }, { t: 55, l: 60, s: 4 }, { t: 50, l: 75, s: 3 }, { t: 58, l: 25, s: 4 }, { t: 56, l: 50, s: 3 }, { t: 53, l: 70, s: 5 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, borderRadius: p.s / 2, backgroundColor: 'rgba(100,160,80,0.2)' }} />
           ))}
           {/* Swirl pattern */}
-          <View style={{ position:'absolute', top:'58%', left:'30%', width:30, height:30, borderRadius:15, borderWidth:2, borderColor:'rgba(90,150,70,0.15)', borderRightColor:'transparent', borderBottomColor:'transparent', transform:[{rotate:'-30deg'}] }} />
-          <View style={{ position:'absolute', top:'62%', left:'38%', width:16, height:16, borderRadius:8, borderWidth:1.5, borderColor:'rgba(90,150,70,0.12)', borderRightColor:'transparent', borderBottomColor:'transparent', transform:[{rotate:'60deg'}] }} />
+          <View style={{ position: 'absolute', top: '58%', left: '30%', width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: 'rgba(90,150,70,0.15)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '-30deg' }] }} />
+          <View style={{ position: 'absolute', top: '62%', left: '38%', width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(90,150,70,0.12)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '60deg' }] }} />
           {/* Leaf accent on top */}
-          <View style={{ position:'absolute', top:'20%', right:'18%', width:16, height:10, borderRadius:8, backgroundColor:'rgba(100,160,80,0.18)', transform:[{rotate:'-35deg'}] }}>
-            <View style={{ position:'absolute', top:4.5, left:2, right:2, height:1, backgroundColor:'rgba(80,130,60,0.15)', borderRadius:1 }} />
+          <View style={{ position: 'absolute', top: '20%', right: '18%', width: 16, height: 10, borderRadius: 8, backgroundColor: 'rgba(100,160,80,0.18)', transform: [{ rotate: '-35deg' }] }}>
+            <View style={{ position: 'absolute', top: 4.5, left: 2, right: 2, height: 1, backgroundColor: 'rgba(80,130,60,0.15)', borderRadius: 1 }} />
           </View>
         </View>
       );
@@ -460,16 +504,16 @@ const MochiPattern = ({ skinId, isDead }: { skinId: string, isDead: boolean }) =
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {/* Sakura leaf wrap (kashiwa-style) */}
-          <View style={{ position:'absolute', bottom:'8%', left:'5%', width:'50%', height:20, backgroundColor:'rgba(140,180,120,0.18)', borderTopLeftRadius:20, borderTopRightRadius:40, borderBottomRightRadius:10, transform:[{rotate:'-8deg'}] }}>
-            <View style={{ position:'absolute', top:9, left:8, right:8, height:1.5, backgroundColor:'rgba(120,160,100,0.15)', borderRadius:1 }} />
+          <View style={{ position: 'absolute', bottom: '8%', left: '5%', width: '50%', height: 20, backgroundColor: 'rgba(140,180,120,0.18)', borderTopLeftRadius: 20, borderTopRightRadius: 40, borderBottomRightRadius: 10, transform: [{ rotate: '-8deg' }] }}>
+            <View style={{ position: 'absolute', top: 9, left: 8, right: 8, height: 1.5, backgroundColor: 'rgba(120,160,100,0.15)', borderRadius: 1 }} />
           </View>
           {/* Scattered cherry blossom petals */}
-          {[{t:25,l:20,r:'-15deg',s:1},{t:35,l:60,r:'30deg',s:0.8},{t:55,l:15,r:'-40deg',s:0.7},{t:48,l:65,r:'20deg',s:0.9},{t:68,l:40,r:'-25deg',s:0.6}].map((p,i) => (
-            <View key={i} style={{ position:'absolute', top:`${p.t}%` as any, left:`${p.l}%` as any, transform:[{rotate:p.r},{scale:p.s}] }}>
-              {[0,72,144,216,288].map((deg,j) => (
-                <View key={j} style={{ position:'absolute', width:6, height:8, borderRadius:3, backgroundColor:`rgba(240,150,170,${0.2-i*0.02})`, transform:[{rotate:`${deg}deg`},{translateY:-4}], transformOrigin:'3px 8px' }} />
+          {[{ t: 25, l: 20, r: '-15deg', s: 1 }, { t: 35, l: 60, r: '30deg', s: 0.8 }, { t: 55, l: 15, r: '-40deg', s: 0.7 }, { t: 48, l: 65, r: '20deg', s: 0.9 }, { t: 68, l: 40, r: '-25deg', s: 0.6 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, transform: [{ rotate: p.r }, { scale: p.s }] }}>
+              {[0, 72, 144, 216, 288].map((deg, j) => (
+                <View key={j} style={{ position: 'absolute', width: 6, height: 8, borderRadius: 3, backgroundColor: `rgba(240,150,170,${0.2 - i * 0.02})`, transform: [{ rotate: `${deg}deg` }, { translateY: -4 }], transformOrigin: '3px 8px' }} />
               ))}
-              <View style={{ width:3, height:3, borderRadius:1.5, backgroundColor:'rgba(240,200,100,0.25)' }} />
+              <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(240,200,100,0.25)' }} />
             </View>
           ))}
         </View>
@@ -479,17 +523,17 @@ const MochiPattern = ({ skinId, isDead }: { skinId: string, isDead: boolean }) =
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {/* Herb leaf clusters */}
-          {[{t:30,l:15,r:'-20deg'},{t:45,l:65,r:'15deg'},{t:60,l:30,r:'-35deg'},{t:70,l:55,r:'25deg'}].map((p,i) => (
-            <View key={i} style={{ position:'absolute', top:`${p.t}%` as any, left:`${p.l}%` as any, transform:[{rotate:p.r}] }}>
-              <View style={{ width:12, height:7, borderRadius:6, backgroundColor:'rgba(90,140,70,0.18)' }}>
-                <View style={{ position:'absolute', top:3, left:2, right:2, height:1, backgroundColor:'rgba(70,120,50,0.12)', borderRadius:1 }} />
+          {[{ t: 30, l: 15, r: '-20deg' }, { t: 45, l: 65, r: '15deg' }, { t: 60, l: 30, r: '-35deg' }, { t: 70, l: 55, r: '25deg' }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, transform: [{ rotate: p.r }] }}>
+              <View style={{ width: 12, height: 7, borderRadius: 6, backgroundColor: 'rgba(90,140,70,0.18)' }}>
+                <View style={{ position: 'absolute', top: 3, left: 2, right: 2, height: 1, backgroundColor: 'rgba(70,120,50,0.12)', borderRadius: 1 }} />
               </View>
-              <View style={{ width:8, height:5, borderRadius:4, backgroundColor:'rgba(90,140,70,0.14)', marginTop:-2, marginLeft:2, transform:[{rotate:'30deg'}] }} />
+              <View style={{ width: 8, height: 5, borderRadius: 4, backgroundColor: 'rgba(90,140,70,0.14)', marginTop: -2, marginLeft: 2, transform: [{ rotate: '30deg' }] }} />
             </View>
           ))}
           {/* Herb speckles */}
-          {[{t:35,l:40,s:4},{t:42,l:22,s:3},{t:50,l:55,s:5},{t:55,l:75,s:3},{t:65,l:18,s:4},{t:48,l:80,s:3},{t:72,l:42,s:4},{t:38,l:70,s:3}].map((p,i) => (
-            <View key={`s${i}`} style={{ position:'absolute', top:`${p.t}%` as any, left:`${p.l}%` as any, width:p.s, height:p.s, borderRadius:p.s/2, backgroundColor:`rgba(80,130,60,${0.12 + (i%3)*0.04})` }} />
+          {[{ t: 35, l: 40, s: 4 }, { t: 42, l: 22, s: 3 }, { t: 50, l: 55, s: 5 }, { t: 55, l: 75, s: 3 }, { t: 65, l: 18, s: 4 }, { t: 48, l: 80, s: 3 }, { t: 72, l: 42, s: 4 }, { t: 38, l: 70, s: 3 }].map((p, i) => (
+            <View key={`s${i}`} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, borderRadius: p.s / 2, backgroundColor: `rgba(80,130,60,${0.12 + (i % 3) * 0.04})` }} />
           ))}
         </View>
       );
@@ -498,20 +542,20 @@ const MochiPattern = ({ skinId, isDead }: { skinId: string, isDead: boolean }) =
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {/* Anko topping layer */}
-          <View style={{ position:'absolute', top:'38%', left:'5%', right:'5%', height:30, overflow:'hidden' }}>
-            <View style={{ position:'absolute', top:0, left:0, right:0, height:18, backgroundColor:'rgba(120,60,40,0.22)', borderBottomLeftRadius:30, borderBottomRightRadius:30 }} />
+          <View style={{ position: 'absolute', top: '38%', left: '5%', right: '5%', height: 30, overflow: 'hidden' }}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, backgroundColor: 'rgba(120,60,40,0.22)', borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }} />
             {/* Drips */}
-            <View style={{ position:'absolute', top:12, left:'12%', width:10, height:14, backgroundColor:'rgba(120,60,40,0.2)', borderBottomLeftRadius:5, borderBottomRightRadius:5 }} />
-            <View style={{ position:'absolute', top:14, left:'40%', width:7, height:10, backgroundColor:'rgba(120,60,40,0.18)', borderBottomLeftRadius:4, borderBottomRightRadius:4 }} />
-            <View style={{ position:'absolute', top:10, left:'65%', width:12, height:16, backgroundColor:'rgba(120,60,40,0.2)', borderBottomLeftRadius:6, borderBottomRightRadius:6 }} />
-            <View style={{ position:'absolute', top:13, left:'85%', width:8, height:8, backgroundColor:'rgba(120,60,40,0.16)', borderBottomLeftRadius:4, borderBottomRightRadius:4 }} />
+            <View style={{ position: 'absolute', top: 12, left: '12%', width: 10, height: 14, backgroundColor: 'rgba(120,60,40,0.2)', borderBottomLeftRadius: 5, borderBottomRightRadius: 5 }} />
+            <View style={{ position: 'absolute', top: 14, left: '40%', width: 7, height: 10, backgroundColor: 'rgba(120,60,40,0.18)', borderBottomLeftRadius: 4, borderBottomRightRadius: 4 }} />
+            <View style={{ position: 'absolute', top: 10, left: '65%', width: 12, height: 16, backgroundColor: 'rgba(120,60,40,0.2)', borderBottomLeftRadius: 6, borderBottomRightRadius: 6 }} />
+            <View style={{ position: 'absolute', top: 13, left: '85%', width: 8, height: 8, backgroundColor: 'rgba(120,60,40,0.16)', borderBottomLeftRadius: 4, borderBottomRightRadius: 4 }} />
           </View>
           {/* Red bean particles */}
-          {[{t:60,l:20},{t:65,l:50},{t:62,l:72},{t:70,l:35},{t:68,l:62}].map((p,i) => (
-            <View key={i} style={{ position:'absolute', top:`${p.t}%` as any, left:`${p.l}%` as any, width:6, height:5, borderRadius:3, backgroundColor:'rgba(140,70,50,0.18)', transform:[{rotate:`${i*30}deg`}] }} />
+          {[{ t: 60, l: 20 }, { t: 65, l: 50 }, { t: 62, l: 72 }, { t: 70, l: 35 }, { t: 68, l: 62 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 6, height: 5, borderRadius: 3, backgroundColor: 'rgba(140,70,50,0.18)', transform: [{ rotate: `${i * 30}deg` }] }} />
           ))}
           {/* Glossy highlight on anko */}
-          <View style={{ position:'absolute', top:'40%', left:'25%', width:20, height:4, borderRadius:2, backgroundColor:'rgba(255,255,255,0.12)' }} />
+          <View style={{ position: 'absolute', top: '40%', left: '25%', width: 20, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.12)' }} />
         </View>
       );
     case 'yuzu':
@@ -519,25 +563,25 @@ const MochiPattern = ({ skinId, isDead }: { skinId: string, isDead: boolean }) =
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {/* Main citrus cross-section */}
-          <View style={{ position:'absolute', top:'50%', left:'25%', width:28, height:28, borderRadius:14, borderWidth:2, borderColor:'rgba(220,180,60,0.2)', backgroundColor:'rgba(255,240,150,0.08)', justifyContent:'center', alignItems:'center' }}>
+          <View style={{ position: 'absolute', top: '50%', left: '25%', width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: 'rgba(220,180,60,0.2)', backgroundColor: 'rgba(255,240,150,0.08)', justifyContent: 'center', alignItems: 'center' }}>
             {/* Segments */}
-            {[0,45,90,135].map((deg,i) => (
-              <View key={i} style={{ position:'absolute', width:18, height:1.5, backgroundColor:'rgba(220,180,60,0.15)', borderRadius:1, transform:[{rotate:`${deg}deg`}] }} />
+            {[0, 45, 90, 135].map((deg, i) => (
+              <View key={i} style={{ position: 'absolute', width: 18, height: 1.5, backgroundColor: 'rgba(220,180,60,0.15)', borderRadius: 1, transform: [{ rotate: `${deg}deg` }] }} />
             ))}
-            <View style={{ width:6, height:6, borderRadius:3, backgroundColor:'rgba(240,200,60,0.15)' }} />
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(240,200,60,0.15)' }} />
           </View>
           {/* Smaller citrus */}
-          <View style={{ position:'absolute', top:'60%', right:'20%', width:16, height:16, borderRadius:8, borderWidth:1.5, borderColor:'rgba(220,180,60,0.15)', justifyContent:'center', alignItems:'center' }}>
-            <View style={{ width:8, height:1, backgroundColor:'rgba(220,180,60,0.12)', position:'absolute' }} />
-            <View style={{ width:1, height:8, backgroundColor:'rgba(220,180,60,0.12)', position:'absolute' }} />
+          <View style={{ position: 'absolute', top: '60%', right: '20%', width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(220,180,60,0.15)', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ width: 8, height: 1, backgroundColor: 'rgba(220,180,60,0.12)', position: 'absolute' }} />
+            <View style={{ width: 1, height: 8, backgroundColor: 'rgba(220,180,60,0.12)', position: 'absolute' }} />
           </View>
           {/* Yuzu leaf */}
-          <View style={{ position:'absolute', top:'28%', right:'22%', width:14, height:9, borderRadius:7, backgroundColor:'rgba(100,160,70,0.18)', transform:[{rotate:'25deg'}] }}>
-            <View style={{ position:'absolute', top:4, left:2, right:2, height:1, backgroundColor:'rgba(80,130,50,0.12)', borderRadius:1 }} />
+          <View style={{ position: 'absolute', top: '28%', right: '22%', width: 14, height: 9, borderRadius: 7, backgroundColor: 'rgba(100,160,70,0.18)', transform: [{ rotate: '25deg' }] }}>
+            <View style={{ position: 'absolute', top: 4, left: 2, right: 2, height: 1, backgroundColor: 'rgba(80,130,50,0.12)', borderRadius: 1 }} />
           </View>
           {/* Zest dots */}
-          {[{t:35,l:18},{t:42,l:55},{t:70,l:30},{t:45,l:78},{t:75,l:60}].map((p,i) => (
-            <View key={i} style={{ position:'absolute', top:`${p.t}%` as any, left:`${p.l}%` as any, width:3, height:3, borderRadius:1.5, backgroundColor:'rgba(240,200,60,0.2)' }} />
+          {[{ t: 35, l: 18 }, { t: 42, l: 55 }, { t: 70, l: 30 }, { t: 45, l: 78 }, { t: 75, l: 60 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 3, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(240,200,60,0.2)' }} />
           ))}
         </View>
       );
@@ -604,7 +648,7 @@ export default function App() {
   const [combo, setCombo] = useState(0);
   const [bestCombo, setBestCombo] = useState(0);
   const [targetShape, setTargetShape] = useState<TargetType>('circle');
-  const [currentDirection, setCurrentDirection] = useState<Direction>('top');
+
   const [highScore, setHighScore] = useState(0);
   const [showTutorial, setShowTutorial] = useState(true);
   const [showBurst, setShowBurst] = useState(false);
@@ -615,22 +659,142 @@ export default function App() {
   const [selectedSkinId, setSelectedSkinId] = useState('classic');
   const [unlockedSkinIds, setUnlockedSkinIds] = useState<string[]>(['classic']);
   const [inventory, setInventory] = useState<Inventory>({ ...DEFAULT_INVENTORY });
-  const [shopTab, setShopTab] = useState<'skins' | 'items'>('skins');
+  const [shopTab, setShopTab] = useState<'skins' | 'items' | 'coins'>('skins');
+
   const [earnedCoins, setEarnedCoins] = useState(0);
+  const [adMultiplierUsed, setAdMultiplierUsed] = useState(false);
+
 
   // Active items for next game
   const [activeItems, setActiveItems] = useState<{ shield: boolean; slow: boolean; double: boolean }>({ shield: false, slow: false, double: false });
-  const [adContinueUsed, setAdContinueUsed] = useState(false);
+  const [adContinueCount, setAdContinueCount] = useState(0);
+
+  // Ad states
+  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+  const [rewardedLoaded, setRewardedLoaded] = useState(false);
+  const [deathCount, setDeathCount] = useState(0);
+  const [adsRemoved, setAdsRemoved] = useState(false);
+
+  // Watch Ad for coins (daily cap)
+  const [watchAdCount, setWatchAdCount] = useState(0);
+
+  // Daily bonus
+  const [dailyBonusShow, setDailyBonusShow] = useState(false);
+  const [dailyBonusAmount, setDailyBonusAmount] = useState(0);
+  const [loginStreak, setLoginStreak] = useState(1);
+
+  useEffect(() => {
+    AsyncStorage.getItem('deathCount').then(val => { if (val) setDeathCount(parseInt(val, 10)); });
+
+    // Preload Interstitial
+    const unsubscribeInterstitialLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+      setInterstitialLoaded(true);
+    });
+    const unsubscribeInterstitialClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+      setInterstitialLoaded(false);
+      interstitial.load(); // reload for next time
+    });
+    interstitial.load();
+
+    // Preload Rewarded
+    const unsubscribeRewardedLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+      setRewardedLoaded(true);
+    });
+    const unsubscribeRewardedEarned = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, reward => {
+      console.log('User earned reward:', reward);
+      // Give reward logic will be handled manually via a separate state or directly in closed event in this basic setup
+    });
+    const unsubscribeRewardedClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
+      setRewardedLoaded(false);
+      rewarded.load(); // reload
+    });
+    rewarded.load();
+
+    return () => {
+      unsubscribeInterstitialLoaded();
+      unsubscribeInterstitialClosed();
+      unsubscribeRewardedLoaded();
+      unsubscribeRewardedEarned();
+      unsubscribeRewardedClosed();
+    };
+  }, []);
+
+
+  // ─── IAP Setup ───
+  useEffect(() => {
+    let purchaseListener: ReturnType<typeof purchaseUpdatedListener> | null = null;
+
+    initConnection()
+      .then(() => {
+        purchaseListener = purchaseUpdatedListener(async (purchase: IapPurchase) => {
+          const sku = purchase.productId;
+          const bundle = IAP_BUNDLES.find(b => b.sku === sku);
+          if (bundle) {
+            if (sku === IAP_SKUS.removeAds) {
+              setAdsRemoved(true);
+              AsyncStorage.setItem('adsRemoved', 'true');
+            } else if (bundle.coins > 0) {
+              setCoins(prev => {
+                const newTotal = prev + bundle.coins;
+                AsyncStorage.setItem('coins', String(newTotal));
+                return newTotal;
+              });
+            }
+          }
+          await finishTransaction({ purchase });
+        });
+      })
+      .catch(e => console.log('IAP initConnection error:', e));
+
+    return () => {
+      purchaseListener?.remove();
+    };
+  }, []);
 
   const currentSkin = SKINS.find(s => s.id === selectedSkinId) || SKINS[0];
 
   useEffect(() => {
     AsyncStorage.getItem('highScore').then(val => { if (val) setHighScore(parseInt(val, 10)); });
     AsyncStorage.getItem('tutorialDone').then(val => { if (val === 'true') setShowTutorial(false); });
-    AsyncStorage.getItem('coins').then(val => { if (val) setCoins(parseInt(val, 10)); });
     AsyncStorage.getItem('selectedSkin').then(val => { if (val) setSelectedSkinId(val); });
     AsyncStorage.getItem('unlockedSkins').then(val => { if (val) setUnlockedSkinIds(JSON.parse(val)); });
     AsyncStorage.getItem('inventory').then(val => { if (val) setInventory(JSON.parse(val)); });
+    AsyncStorage.getItem('adsRemoved').then(val => { if (val === 'true') setAdsRemoved(true); });
+
+    // Watch Ad daily cap reset
+    const today = new Date().toDateString();
+    AsyncStorage.getItem('watchAdDate').then(date => {
+      if (date === today) {
+        AsyncStorage.getItem('watchAdCount').then(c => { if (c) setWatchAdCount(parseInt(c, 10)); });
+      } else {
+        AsyncStorage.setItem('watchAdDate', today);
+        AsyncStorage.setItem('watchAdCount', '0');
+        setWatchAdCount(0);
+      }
+    });
+
+    // Daily login bonus
+    AsyncStorage.multiGet(['coins', 'lastLoginDate', 'loginStreak']).then(pairs => {
+      const savedCoins = pairs[0][1] ? parseInt(pairs[0][1], 10) : 0;
+      setCoins(savedCoins);
+      const lastDate = pairs[1][1];
+      const streak = parseInt(pairs[2][1] || '0', 10);
+      if (lastDate !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        const newStreak = lastDate === yesterday ? streak + 1 : 1;
+        const bonus = newStreak >= 4 ? 25 : newStreak === 3 ? 20 : newStreak === 2 ? 15 : 10;
+        setLoginStreak(newStreak);
+        setDailyBonusAmount(bonus);
+        setDailyBonusShow(true);
+        const newCoins = savedCoins + bonus;
+        setCoins(newCoins);
+        AsyncStorage.multiSet([
+          ['coins', String(newCoins)],
+          ['lastLoginDate', today],
+          ['loginStreak', String(newStreak)],
+        ]);
+      }
+    });
   }, []);
 
   const gameStateRef = useRef(gameState); gameStateRef.current = gameState;
@@ -674,6 +838,7 @@ export default function App() {
 
   // Target wobble + burst
   const targetRotateAnim = useRef(new Animated.Value(0)).current;
+  const targetOpacityAnim = useRef(new Animated.Value(1)).current;
   const burstParticleAnim = useRef(new Animated.Value(0)).current;
 
   const [squishType, setSquishType] = useState<'tall' | 'wide' | 'normal'>('normal');
@@ -701,8 +866,6 @@ export default function App() {
 
   // Combo flash
   const comboFlashAnim = useRef(new Animated.Value(0)).current;
-  const [comboMilestone, setComboMilestone] = useState('');
-  const comboMilestoneAnim = useRef(new Animated.Value(0)).current;
 
   // Home shimmer + play pulse
   const titleShimmerAnim = useRef(new Animated.Value(0)).current;
@@ -710,7 +873,8 @@ export default function App() {
   const furinSwayAnim = useRef(new Animated.Value(0)).current;
 
   // Level up banner
-  const levelUpBannerY = useRef(new Animated.Value(-80)).current;
+  const BANNER_HIDE_Y = Platform.OS === 'ios' ? -130 : -90;
+  const levelUpBannerY = useRef(new Animated.Value(Platform.OS === 'ios' ? -130 : -90)).current;
   const levelUpBannerOpacity = useRef(new Animated.Value(0)).current;
   const levelUpFlashAnim = useRef(new Animated.Value(0)).current;
 
@@ -723,13 +887,23 @@ export default function App() {
   const statAnim2 = useRef(new Animated.Value(0)).current;
 
   // ─── Audio Players ───
-  const bgmPlayer = useAudioPlayer('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3');
-  const popSfx = useAudioPlayer('https://actions.google.com/sounds/v1/cartoon/pop.ogg');
-  const failSfx = useAudioPlayer('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg');
+  const bgmPlayer = useAudioPlayer('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3');
+  const popSfx = useAudioPlayer(require('./assets/audio/pop.mp3'));
+  const failSfx = useAudioPlayer(require('./assets/audio/fail.mp3'));
+  const levelUpSfx = useAudioPlayer(require('./assets/audio/levelup.mp3'));
+  const shieldSfx = useAudioPlayer(require('./assets/audio/shield.mp3'));
+
+  const playSound = (player: ReturnType<typeof useAudioPlayer>, volume = 1.0) => {
+    player.volume = volume;
+    player.seekTo(0).then(() => player.play()).catch(() => { });
+  };
 
   useEffect(() => {
     bgmPlayer.loop = true;
-    bgmPlayer.volume = 0.3;
+    bgmPlayer.volume = 0.25;
+  }, []);
+
+  useEffect(() => {
     if (gameState === 'PLAYING') {
       bgmPlayer.play();
     } else {
@@ -830,21 +1004,18 @@ export default function App() {
   useEffect(() => {
     const hId = heightAnim.addListener(({ value }) => {
       heightRef.current = value;
-      if (value > 155 && squishType !== 'tall') setSquishType('tall');
-      else if (value < 125 && squishType !== 'wide') setSquishType('wide');
-      else if (value >= 125 && value <= 155 && squishType !== 'normal') setSquishType('normal');
+      setSquishType(prev => {
+        if (value > 155 && prev !== 'tall') return 'tall';
+        if (value < 125 && prev !== 'wide') return 'wide';
+        if (value >= 125 && value <= 155 && prev !== 'normal') return 'normal';
+        return prev;
+      });
     });
     return () => heightAnim.removeListener(hId);
-  }, [squishType]);
-
-  // Track fallAnim value — read _value directly in collision loop for reliability
-  const fallPosRef = useRef(-300);
-  useEffect(() => {
-    const id = fallAnim.addListener(({ value }) => { fallPosRef.current = value; });
-    return () => fallAnim.removeListener(id);
   }, []);
 
   const frameRef = useRef<number | undefined>(undefined);
+  const scoreCountListenerRef = useRef<string | undefined>(undefined);
   // Use ref pattern to always have fresh closure (fixes retry bug)
   const checkCollisionRef = useRef<() => void>(undefined);
   checkCollisionRef.current = () => {
@@ -856,8 +1027,6 @@ export default function App() {
     switch (dir) {
       case 'top': hasReachedMochi = curVal > PLAYER_CENTER_Y - 30; break;
       case 'bottom': hasReachedMochi = curVal < PLAYER_CENTER_Y + 30; break;
-      case 'left': hasReachedMochi = curVal > PLAYER_CENTER_X - 30; break;
-      case 'right': hasReachedMochi = curVal < PLAYER_CENTER_X + 30; break;
     }
 
     if (hasReachedMochi && !passedRef.current) {
@@ -879,8 +1048,7 @@ export default function App() {
         setIsHappy(true);
         happyTimerRef.current = setTimeout(() => setIsHappy(false), 400);
 
-        popSfx.seekTo(0);
-        popSfx.play();
+        playSound(popSfx, 0.7);
 
         triggerBurst(TARGETS[currentTS].color);
 
@@ -906,8 +1074,9 @@ export default function App() {
               return newLvl;
             });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            playSound(levelUpSfx, 0.8);
             // Level up banner slide-down
-            levelUpBannerY.setValue(-80);
+            levelUpBannerY.setValue(BANNER_HIDE_Y);
             levelUpBannerOpacity.setValue(0);
             Animated.sequence([
               Animated.parallel([
@@ -916,7 +1085,7 @@ export default function App() {
               ]),
               Animated.delay(1200),
               Animated.parallel([
-                Animated.timing(levelUpBannerY, { toValue: -80, duration: 300, useNativeDriver: true }),
+                Animated.timing(levelUpBannerY, { toValue: BANNER_HIDE_Y, duration: 300, useNativeDriver: true }),
                 Animated.timing(levelUpBannerOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
               ]),
             ]).start();
@@ -932,21 +1101,29 @@ export default function App() {
           return ns;
         });
 
+        // Combo coin reward every 5 combos
+        const newCombo = comboRef.current + 1;
+        if (newCombo % 5 === 0) {
+          setCoins(prev => {
+            const newTotal = prev + 3;
+            AsyncStorage.setItem('coins', String(newTotal));
+            return newTotal;
+          });
+          setItemPopup({ text: '+3 🍡', color: '#F0C75E' });
+          itemPopupAnim.setValue(0);
+          Animated.sequence([
+            Animated.spring(itemPopupAnim, { toValue: 1, friction: 4, tension: 100, useNativeDriver: false }),
+            Animated.delay(500),
+            Animated.timing(itemPopupAnim, { toValue: 0, duration: 300, useNativeDriver: false }),
+          ]).start(() => setItemPopup(null));
+        }
+
         setCombo(c => {
           const nc = c + 1; comboRef.current = nc;
           if (nc >= 2) { comboAnim.setValue(0.5); Animated.spring(comboAnim, { toValue: 1, friction: 3, useNativeDriver: false }).start(); }
 
           // Combo milestone flash
           if (nc === 5 || nc === 10 || (nc > 10 && nc % 5 === 0)) {
-            const milestone = nc >= 15 ? '神！' : nc === 10 ? '最高！' : 'すごい！';
-            setComboMilestone(milestone);
-            comboMilestoneAnim.setValue(0);
-            Animated.sequence([
-              Animated.spring(comboMilestoneAnim, { toValue: 1, friction: 4, tension: 120, useNativeDriver: false }),
-              Animated.delay(700),
-              Animated.timing(comboMilestoneAnim, { toValue: 0, duration: 300, useNativeDriver: false }),
-            ]).start(() => setComboMilestone(''));
-
             comboFlashAnim.setValue(0);
             Animated.sequence([
               Animated.timing(comboFlashAnim, { toValue: 1, duration: 120, useNativeDriver: false }),
@@ -984,6 +1161,7 @@ export default function App() {
             Animated.timing(shieldBreakAnim, { toValue: 0, duration: 300, useNativeDriver: false }),
           ]).start(() => setShowShieldBreak(false));
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          playSound(shieldSfx, 0.9);
           triggerWobble();
           // Continue playing — shield consumed
         } else {
@@ -996,12 +1174,25 @@ export default function App() {
 
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
-          failSfx.seekTo(0);
-          failSfx.play();
+          playSound(failSfx, 1.0);
 
           triggerShake();
+
+          // Increment death counter
+          const newDeathCount = deathCount + 1;
+          setDeathCount(newDeathCount);
+          AsyncStorage.setItem('deathCount', String(newDeathCount));
+
+          if (!adsRemoved && newDeathCount > 2 && newDeathCount % 3 === 0 && interstitialLoaded) {
+            // Show interstitial every 3 deaths (after first 2), skip if ads removed
+            setTimeout(() => {
+              interstitial.show();
+            }, 800);
+          }
+
           gameOverSlideAnim.setValue(0);
           setGameState('OVER'); setCombo(0);
+          setAdMultiplierUsed(false);
           Animated.spring(gameOverSlideAnim, { toValue: 1, friction: 6, tension: 40, useNativeDriver: false }).start();
 
           // Mochi squish on death
@@ -1009,12 +1200,12 @@ export default function App() {
           gameOverSquishX.setValue(1);
           Animated.sequence([
             Animated.parallel([
-              Animated.spring(gameOverSquishY, { toValue: 0.35, friction: 3, tension: 200, useNativeDriver: true }),
-              Animated.spring(gameOverSquishX, { toValue: 1.5, friction: 3, tension: 200, useNativeDriver: true }),
+              Animated.spring(gameOverSquishY, { toValue: 0.35, friction: 3, tension: 200, useNativeDriver: false }),
+              Animated.spring(gameOverSquishX, { toValue: 1.5, friction: 3, tension: 200, useNativeDriver: false }),
             ]),
             Animated.parallel([
-              Animated.spring(gameOverSquishY, { toValue: 0.5, friction: 5, tension: 80, useNativeDriver: true }),
-              Animated.spring(gameOverSquishX, { toValue: 1.3, friction: 5, tension: 80, useNativeDriver: true }),
+              Animated.spring(gameOverSquishY, { toValue: 0.5, friction: 5, tension: 80, useNativeDriver: false }),
+              Animated.spring(gameOverSquishX, { toValue: 1.3, friction: 5, tension: 80, useNativeDriver: false }),
             ]),
           ]).start();
 
@@ -1029,11 +1220,15 @@ export default function App() {
           setDisplayScore(0); scoreCountAnim.setValue(0);
           const cd = Math.min(fs * 80, 1500);
           Animated.timing(scoreCountAnim, { toValue: fs, duration: cd, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
-          const cid = scoreCountAnim.addListener(({ value: v }) => setDisplayScore(Math.round(v)));
-          setTimeout(() => { scoreCountAnim.removeListener(cid); setDisplayScore(fs); }, cd + 100);
+          if (scoreCountListenerRef.current) scoreCountAnim.removeListener(scoreCountListenerRef.current);
+          scoreCountListenerRef.current = scoreCountAnim.addListener(({ value: v }) => setDisplayScore(Math.round(v)));
+          setTimeout(() => {
+            if (scoreCountListenerRef.current) { scoreCountAnim.removeListener(scoreCountListenerRef.current); scoreCountListenerRef.current = undefined; }
+            setDisplayScore(fs);
+          }, cd + 100);
 
-          // Earn coins
-          const earned = fs;
+          // Earn coins: 1 coin per 3 points
+          const earned = Math.floor(fs / 3);
           setEarnedCoins(earned);
           if (earned > 0) {
             setCoins(prev => {
@@ -1063,35 +1258,38 @@ export default function App() {
   };
 
   useEffect(() => {
-    return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current); };
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      if (scoreCountListenerRef.current) scoreCountAnim.removeListener(scoreCountListenerRef.current);
+    };
   }, []);
 
   const startFallRef = useRef<() => void>(undefined);
   startFallRef.current = () => {
     // Pick direction based on level
     const lvl = levelRef.current;
-    const availDirs: Direction[] =
-      lvl <= 2 ? ['top'] :
-        lvl <= 4 ? ['top', 'bottom'] :
-          [...DIRECTIONS];
+    const availDirs: Direction[] = lvl <= 3 ? ['top'] : ['top', 'bottom'];
     const dir = availDirs[Math.floor(Math.random() * availDirs.length)];
-    setCurrentDirection(dir);
+
     directionRef.current = dir;
 
     // Compute start/end by direction
     let startVal: number, endVal: number;
     switch (dir) {
-      case 'top': startVal = -250; endVal = SCREEN_H + 150; break;
-      case 'bottom': startVal = SCREEN_H + 250; endVal = -150; break;
-      case 'left': startVal = -250; endVal = SCREEN_W + 150; break;
-      case 'right': startVal = SCREEN_W + 250; endVal = -150; break;
+      case 'top':
+        startVal = -250; endVal = SCREEN_H + 150; break;
+      case 'bottom':
+        startVal = SCREEN_H + 250; endVal = -150; break;
+      default:
+        startVal = -250; endVal = SCREEN_H + 150; break;
     }
 
+    targetOpacityAnim.setValue(0);
     fallAnim.setValue(startVal);
-    fallPosRef.current = startVal;
     passedRef.current = false;
+    Animated.timing(targetOpacityAnim, { toValue: 1, duration: 80, useNativeDriver: false }).start();
     let dur = 3000 - (Math.floor(scoreRef.current / 3) + 1) * 150;
-    if (dur < 1000) dur = 1000;
+    if (dur < 600) dur = 600;
     // Apply slow item
     if (slowCountRef.current > 0) {
       dur *= 2;
@@ -1115,13 +1313,7 @@ export default function App() {
     });
   };
 
-  const startGame = () => {
-    gameStateRef.current = 'PLAYING';
-    passedRef.current = false;
-    scoreRef.current = 0;
-    comboRef.current = 0;
-
-    // Apply active items
+  const applyActiveItems = () => {
     shieldActiveRef.current = activeItems.shield;
     setHasShield(activeItems.shield);
     shieldAnim.setValue(0);
@@ -1129,8 +1321,6 @@ export default function App() {
     setSlowCount(slowCountRef.current);
     doubleCountRef.current = activeItems.double ? 5 : 0;
     setDoubleCount(doubleCountRef.current);
-
-    // Consume items from inventory
     if (activeItems.shield || activeItems.slow || activeItems.double) {
       setInventory(prev => {
         const next = { ...prev };
@@ -1142,10 +1332,18 @@ export default function App() {
       });
       setActiveItems({ shield: false, slow: false, double: false });
     }
+  };
+
+  const startGame = () => {
+    gameStateRef.current = 'PLAYING';
+    passedRef.current = false;
+    scoreRef.current = 0;
+    comboRef.current = 0;
+
+    applyActiveItems();
 
     fallAnim.stopAnimation();
     fallAnim.setValue(-250);
-    fallPosRef.current = -250;
 
     screenFadeAnim.setValue(0);
     Animated.timing(screenFadeAnim, { toValue: 1, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
@@ -1154,7 +1352,7 @@ export default function App() {
     prevBgIdxRef.current = 0; curBgIdxRef.current = 0; bgColorAnim.setValue(1);
     setTargetShape('circle');
     targetShapeRef.current = 'circle';
-    setCurrentDirection('top');
+
     directionRef.current = 'top';
     levelRef.current = 1;
 
@@ -1174,48 +1372,45 @@ export default function App() {
     prevBgIdxRef.current = 0; curBgIdxRef.current = 0; bgColorAnim.setValue(1);
     scoreRef.current = 0; heightAnim.setValue(BASE_DIM); popAnim.setValue(1); fallAnim.setValue(-300);
     gameStateRef.current = 'START';
-    setCurrentDirection('top');
+
     directionRef.current = 'top';
     levelRef.current = 1;
-    setAdContinueUsed(false);
+    setAdContinueCount(0);
+    setAdMultiplierUsed(false);
   };
 
+
   const continueFromAd = () => {
-    // Simulate watching an ad (placeholder — replace with real ad SDK later)
-    setAdContinueUsed(true);
+    if (adsRemoved) {
+      executeContinue();
+      return;
+    }
+    if (rewardedLoaded) {
+      const unsubscribeClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
+        unsubscribeClosed();
+        executeContinue();
+      });
+      rewarded.show();
+    } else {
+      executeContinue();
+    }
+  };
+
+  const executeContinue = () => {
+
+    setAdContinueCount(prev => prev + 1);
     gameStateRef.current = 'PLAYING';
     passedRef.current = false;
     comboRef.current = 0;
 
-    // Apply active items
-    shieldActiveRef.current = activeItems.shield;
-    setHasShield(activeItems.shield);
-    shieldAnim.setValue(0);
-    slowCountRef.current = activeItems.slow ? 3 : 0;
-    setSlowCount(slowCountRef.current);
-    doubleCountRef.current = activeItems.double ? 5 : 0;
-    setDoubleCount(doubleCountRef.current);
-
-    // Consume items from inventory
-    if (activeItems.shield || activeItems.slow || activeItems.double) {
-      setInventory(prev => {
-        const next = { ...prev };
-        if (activeItems.shield) next.shield--;
-        if (activeItems.slow) next.slow--;
-        if (activeItems.double) next.double--;
-        AsyncStorage.setItem('inventory', JSON.stringify(next));
-        return next;
-      });
-      setActiveItems({ shield: false, slow: false, double: false });
-    }
+    applyActiveItems();
 
     fallAnim.stopAnimation();
     fallAnim.setValue(-250);
-    fallPosRef.current = -250;
     heightAnim.setValue(BASE_DIM); wobbleAnim.setValue(0);
 
     setGameState('PLAYING'); setCombo(0);
-    setCurrentDirection('top');
+
     directionRef.current = 'top';
     const nextTarget = TARGET_TYPES[Math.floor(Math.random() * TARGET_TYPES.length)];
     setTargetShape(nextTarget);
@@ -1227,7 +1422,30 @@ export default function App() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
+
+  const multiplyCoinsFromAd = () => {
+    if (rewardedLoaded && !adMultiplierUsed && earnedCoins > 0) {
+      const unsubscribeClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
+        unsubscribeClosed();
+
+        // Give 2x MORE coins (total 3x)
+        const bonusCoins = earnedCoins * 2;
+        setCoins(prev => {
+          const newTotal = prev + bonusCoins;
+          AsyncStorage.setItem('coins', String(newTotal));
+          return newTotal;
+        });
+
+        setEarnedCoins(earnedCoins * 3); // update display
+        setAdMultiplierUsed(true);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      });
+      rewarded.show();
+    }
+  };
+
   // ─── Shop functions ───
+
   const buySkin = (skin: MochiSkin) => {
     if (coins < skin.price || unlockedSkinIds.includes(skin.id)) return;
     const newCoins = coins - skin.price;
@@ -1254,7 +1472,7 @@ export default function App() {
     setCoins(newCoins);
     AsyncStorage.setItem('coins', String(newCoins));
     setInventory(prev => {
-      const next = { ...prev, [item.id]: prev[item.id as keyof Inventory] + 1 };
+      const next = { ...prev, [item.id]: prev[item.id] + 1 };
       AsyncStorage.setItem('inventory', JSON.stringify(next));
       return next;
     });
@@ -1265,6 +1483,39 @@ export default function App() {
     if (inventory[itemId] <= 0) return;
     setActiveItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const watchAdForCoins = () => {
+    if (watchAdCount >= 3 || !rewardedLoaded) return;
+    const today = new Date().toDateString();
+    const handleReward = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+      handleReward();
+      const reward = 20;
+      setCoins(prev => {
+        const newTotal = prev + reward;
+        AsyncStorage.setItem('coins', String(newTotal));
+        return newTotal;
+      });
+      const newCount = watchAdCount + 1;
+      setWatchAdCount(newCount);
+      AsyncStorage.setItem('watchAdCount', String(newCount));
+      AsyncStorage.setItem('watchAdDate', today);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    });
+    rewarded.show();
+  };
+
+  const buyIap = async (sku: string) => {
+    try {
+      await requestPurchase({
+        request: Platform.OS === 'ios'
+          ? { apple: { sku } }
+          : { google: { skus: [sku] } },
+        type: 'in-app',
+      });
+    } catch (e) {
+      console.log('IAP purchase error:', e);
+    }
   };
 
   const panResponder = useRef(PanResponder.create({
@@ -1330,23 +1581,6 @@ export default function App() {
         }} />
       )}
 
-      {/* Combo Milestone Text */}
-      {gameState === 'PLAYING' && comboMilestone !== '' && (
-        <Animated.View pointerEvents="none" style={{
-          position: 'absolute', alignSelf: 'center', top: PLAYER_CENTER_Y - 120, zIndex: 60,
-          opacity: comboMilestoneAnim,
-          transform: [
-            { scale: comboMilestoneAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.4, 1.15, 1] }) },
-            { translateY: comboMilestoneAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) },
-          ],
-        }}>
-          <Text style={{
-            fontSize: 42, fontWeight: '900', color: '#C85070',
-            textShadowColor: 'rgba(255,255,255,0.9)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16,
-            letterSpacing: 2,
-          }}>{comboMilestone}</Text>
-        </Animated.View>
-      )}
 
       {/* Level Up White Flash */}
       {gameState === 'PLAYING' && (
@@ -1356,26 +1590,6 @@ export default function App() {
         }} />
       )}
 
-      {/* Level Up Banner */}
-      {gameState === 'PLAYING' && (
-        <Animated.View pointerEvents="none" style={{
-          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50,
-          transform: [{ translateY: levelUpBannerY }],
-          opacity: levelUpBannerOpacity,
-          backgroundColor: 'rgba(200,80,112,0.88)',
-          paddingVertical: 14,
-          paddingHorizontal: 24,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderBottomWidth: 2,
-          borderBottomColor: 'rgba(255,255,255,0.4)',
-        }}>
-          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600', marginRight: 10 }}>レベルアップ！</Text>
-          <Text style={{ color: '#FFE566', fontSize: 32, fontWeight: '900', letterSpacing: 1 }}>Level {level}</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginLeft: 10 }}>第{level}段</Text>
-        </Animated.View>
-      )}
 
       {/* Burst Ring */}
       {gameState === 'PLAYING' && (
@@ -1399,17 +1613,14 @@ export default function App() {
       {gameState === 'PLAYING' && (
         <Animated.View style={{
           position: 'absolute',
-          ...(currentDirection === 'left' || currentDirection === 'right'
-            ? { left: 0, top: PLAYER_CENTER_Y - currentTarget.h / 2 }
-            : { top: 0, alignSelf: 'center' as const }),
+          opacity: targetOpacityAnim,
+          top: 0, alignSelf: 'center' as const,
           width: currentTarget.w, height: currentTarget.h,
           borderRadius: currentTarget.w === currentTarget.h ? 999 : 40,
           borderWidth: 6, borderStyle: 'dashed', borderColor: currentTarget.color,
           backgroundColor: 'rgba(255,255,255,0.35)', justifyContent: 'center', alignItems: 'center',
           shadowColor: currentTarget.color, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 20,
-          transform: currentDirection === 'left' || currentDirection === 'right'
-            ? [{ translateX: fallAnim }, { translateX: -currentTarget.w / 2 }, { rotate: targetRotate }]
-            : [{ translateY: fallAnim }, { translateY: -currentTarget.h / 2 }, { rotate: targetRotate }],
+          transform: [{ translateY: fallAnim }, { translateY: -currentTarget.h / 2 }, { rotate: targetRotate }],
           zIndex: 10,
         }}>
           <Text style={[styles.frameLabel, { color: currentTarget.color }]}>{currentTarget.label}</Text>
@@ -1531,6 +1742,29 @@ export default function App() {
       {/* ─── UI OVERLAYS ─── */}
       <View style={styles.overlay} pointerEvents="box-none">
 
+        {/* Level Up Banner */}
+        {gameState === 'PLAYING' && (
+          <Animated.View pointerEvents="none" style={{
+            position: 'absolute', top: 0, left: 0, right: 0, zIndex: 200,
+            transform: [{ translateY: levelUpBannerY }],
+            opacity: levelUpBannerOpacity,
+            backgroundColor: 'rgba(200,80,112,0.88)',
+            paddingTop: Platform.OS === 'ios' ? 62 : 14,
+            paddingBottom: 14,
+            paddingHorizontal: 24,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderBottomWidth: 2,
+            borderBottomColor: 'rgba(255,255,255,0.4)',
+          }}>
+            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600', marginRight: 10 }}>レベルアップ！</Text>
+            <Text style={{ color: '#FFE566', fontSize: 32, fontWeight: '900', letterSpacing: 1 }}>Level {level}</Text>
+            {level === 4 && <Text style={{ color: '#FFE566', fontSize: 13, fontWeight: '900', marginLeft: 10 }}>↓ Bottom incoming!</Text>}
+            {level !== 4 && <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginLeft: 10 }}>Stage {level}</Text>}
+          </Animated.View>
+        )}
+
         {/* HUD */}
         {gameState === 'PLAYING' && (
           <Animated.View style={[styles.headsUpLayer, { opacity: screenFadeAnim }]} pointerEvents="none">
@@ -1540,8 +1774,12 @@ export default function App() {
                 <Text style={styles.hudValue}>{level}</Text>
               </View>
               <View style={[styles.hudBadge, { borderColor: '#E8A0B4' }]}>
-                <Text style={[styles.hudLabel, { color: '#E8A0B4' }]}>🍡</Text>
+                <Text style={[styles.hudLabel, { color: '#E8A0B4' }]}>⭐</Text>
                 <Text style={styles.hudValue}>{score}</Text>
+              </View>
+              <View style={[styles.hudBadge, { borderColor: '#F0C75E' }]}>
+                <Text style={[styles.hudLabel, { color: '#D4A030' }]}>🍡</Text>
+                <Text style={styles.hudValue}>{coins}</Text>
               </View>
             </View>
 
@@ -1672,15 +1910,15 @@ export default function App() {
             {/* Item slots */}
             <View style={styles.itemSlotsRow}>
               {GAME_ITEMS.map(item => {
-                const count = inventory[item.id as keyof Inventory];
-                const active = activeItems[item.id as keyof typeof activeItems];
+                const count = inventory[item.id];
+                const active = activeItems[item.id];
                 return (
                   <TouchableOpacity
                     key={item.id}
                     style={[styles.itemSlot, active && count > 0 && styles.itemSlotActive]}
                     onPress={() => {
                       if (count > 0) {
-                        toggleActiveItem(item.id as keyof Inventory);
+                        toggleActiveItem(item.id);
                       } else {
                         buyItem(item);
                       }
@@ -1712,6 +1950,12 @@ export default function App() {
                 <Text style={styles.shopBtnText}>🛍️ SHOP</Text>
               </TouchableOpacity>
             </Animated.View>
+            {/* Banner Ad — Home bottom */}
+            {!adsRemoved && (
+              <View style={{ marginTop: 8 }}>
+                <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
+              </View>
+            )}
           </Animated.View>
         )}
 
@@ -1742,11 +1986,48 @@ export default function App() {
               >
                 <Text style={[styles.shopTabText, shopTab === 'items' && styles.shopTabTextActive]}>ITEMS</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.shopTab, shopTab === 'coins' && styles.shopTabActive]}
+                onPress={() => setShopTab('coins')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.shopTabText, shopTab === 'coins' && styles.shopTabTextActive]}>🍡 Buy</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Content */}
             <ScrollView style={styles.shopContent} contentContainerStyle={styles.shopContentInner} showsVerticalScrollIndicator={false}>
-              {shopTab === 'skins' ? (
+              {shopTab === 'coins' ? (
+                <View style={styles.itemList}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 2, textAlign: 'center', marginBottom: 16 }}>COINS</Text>
+                  {IAP_BUNDLES.map(bundle => (
+                    <TouchableOpacity
+                      key={bundle.sku}
+                      style={[styles.itemCard, bundle.sku === IAP_SKUS.removeAds && { borderColor: '#C85070', borderWidth: 2 }]}
+                      onPress={() => buyIap(bundle.sku)}
+                      activeOpacity={0.8}
+                      disabled={bundle.sku === IAP_SKUS.removeAds && adsRemoved}
+                    >
+                      <Text style={styles.itemIcon}>{bundle.sku === IAP_SKUS.removeAds ? '🚫' : '🍡'}</Text>
+                      <View style={styles.itemInfo}>
+                        <Text style={styles.itemName}>{bundle.label}</Text>
+                        {bundle.sku === IAP_SKUS.removeAds && (
+                          <Text style={styles.itemDesc}>Permanently removes all ads</Text>
+                        )}
+                        {adsRemoved && bundle.sku === IAP_SKUS.removeAds && (
+                          <Text style={[styles.itemOwned, { color: '#7BA870' }]}>✓ Purchased</Text>
+                        )}
+                      </View>
+                      <View style={[styles.buyBtn, { backgroundColor: bundle.sku === IAP_SKUS.removeAds ? '#C85070' : '#F0C75E', borderColor: bundle.sku === IAP_SKUS.removeAds ? '#A03050' : '#D4A030' }]}>
+                        <Text style={[styles.buyBtnText, { color: bundle.sku === IAP_SKUS.removeAds ? '#fff' : '#4A3F35' }]}>{bundle.price}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                  <Text style={{ fontSize: 11, color: '#C4B5A5', textAlign: 'center', marginTop: 12, lineHeight: 16 }}>
+                    {'Payment will be charged to your iTunes/Google Play account.\nRefunds follow each store\'s refund policy.'}
+                  </Text>
+                </View>
+              ) : shopTab === 'skins' ? (
                 <View style={styles.skinGrid}>
                   {SKINS.map(skin => {
                     const owned = unlockedSkinIds.includes(skin.id);
@@ -1790,7 +2071,7 @@ export default function App() {
               ) : (
                 <View style={styles.itemList}>
                   {GAME_ITEMS.map(item => {
-                    const count = inventory[item.id as keyof Inventory];
+                    const count = inventory[item.id];
                     const canBuy = coins >= item.price;
                     return (
                       <View key={item.id} style={styles.itemCard}>
@@ -1810,9 +2091,38 @@ export default function App() {
                       </View>
                     );
                   })}
+                  {/* Watch Ad for Coins */}
+                  {!adsRemoved && (
+                    <TouchableOpacity
+                      style={[styles.itemCard, {
+                        backgroundColor: watchAdCount >= 3 ? '#F5F0EB' : '#FFF8E8',
+                        borderColor: '#F0C75E', borderWidth: 2, borderRadius: 16,
+                        opacity: watchAdCount >= 3 ? 0.5 : 1,
+                      }]}
+                      onPress={watchAdForCoins}
+                      activeOpacity={watchAdCount >= 3 ? 1 : 0.7}
+                      disabled={watchAdCount >= 3}
+                    >
+                      <Text style={[styles.itemIcon]}>🎬</Text>
+                      <View style={styles.itemInfo}>
+                        <Text style={styles.itemName}>Watch Ad</Text>
+                        <Text style={styles.itemDesc}>+20 🍡 per view</Text>
+                        <Text style={styles.itemOwned}>{watchAdCount >= 3 ? 'Come back tomorrow!' : `Today: ${watchAdCount}/3`}</Text>
+                      </View>
+                      <View style={[styles.buyBtn, { backgroundColor: watchAdCount >= 3 ? '#D4C4B0' : '#F0C75E', borderColor: '#D4A030' }]}>
+                        <Text style={[styles.buyBtnText, { color: '#4A3F35' }]}>FREE</Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </ScrollView>
+            {/* Banner Ad — Shop bottom */}
+            {!adsRemoved && (
+              <View style={{ alignItems: 'center', paddingBottom: 8 }}>
+                <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
+              </View>
+            )}
           </View>
         )}
 
@@ -1822,6 +2132,7 @@ export default function App() {
             opacity: gameOverSlideAnim,
             transform: [{ translateY: gameOverSlideAnim.interpolate({ inputRange: [0, 1], outputRange: [60, 0] }) }]
           }]}>
+          <ScrollView contentContainerStyle={{ alignItems: 'center', paddingVertical: 24 }} showsVerticalScrollIndicator={false}>
             <View style={styles.gameOverCard}>
               {/* Decorative Japanese top strip */}
               <View style={{
@@ -1830,7 +2141,7 @@ export default function App() {
                 marginHorizontal: -24, marginTop: -20, marginBottom: 16,
                 borderBottomWidth: 1.5, borderBottomColor: '#E8B4C2',
               }}>
-                {[0,1,2,3,4].map(i => (
+                {[0, 1, 2, 3, 4].map(i => (
                   <View key={i} style={{
                     width: 12, height: 12, borderRadius: 6,
                     backgroundColor: i % 2 === 0 ? '#C85070' : '#F0B8C8',
@@ -1882,15 +2193,15 @@ export default function App() {
             {/* Item slots for Retry */}
             <View style={[styles.itemSlotsRow, { marginTop: -10, marginBottom: 10 }]}>
               {GAME_ITEMS.map(item => {
-                const count = inventory[item.id as keyof Inventory];
-                const active = activeItems[item.id as keyof typeof activeItems];
+                const count = inventory[item.id];
+                const active = activeItems[item.id];
                 return (
                   <TouchableOpacity
                     key={`retry-${item.id}`}
                     style={[styles.itemSlot, active && count > 0 && styles.itemSlotActive]}
                     onPress={() => {
                       if (count > 0) {
-                        toggleActiveItem(item.id as keyof Inventory);
+                        toggleActiveItem(item.id);
                       } else {
                         buyItem(item);
                       }
@@ -1909,10 +2220,18 @@ export default function App() {
             </View>
 
             <View style={{ gap: 12, alignItems: 'center' }}>
-              {!adContinueUsed && score > 0 && (
+              {adContinueCount < 2 && score > 0 && (
                 <TouchableOpacity style={styles.adContinueBtn} onPress={continueFromAd} activeOpacity={0.85}>
                   <Text style={styles.adContinueBtnText}>▶ CONTINUE</Text>
-                  <Text style={styles.adContinueSubText}>Watch Ad</Text>
+                  <Text style={styles.adContinueSubText}>
+                    {adsRemoved ? 'FREE' : `Watch Ad (${adContinueCount}/2)`}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {!adMultiplierUsed && earnedCoins > 0 && (
+                <TouchableOpacity style={[styles.adContinueBtn, { backgroundColor: '#F0C75E', borderColor: '#D4A030' }]} onPress={multiplyCoinsFromAd} activeOpacity={0.85}>
+                  <Text style={[styles.adContinueBtnText, { color: '#4A3F35' }]}>💰 3x COINS</Text>
+                  <Text style={[styles.adContinueSubText, { color: '#8B7E74' }]}>Watch Ad to multiply reward!</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity style={styles.retryButton} onPress={startGame} activeOpacity={0.85}>
@@ -1922,8 +2241,26 @@ export default function App() {
                 <Text style={styles.homeBtnText}>HOME</Text>
               </TouchableOpacity>
             </View>
+          </ScrollView>
           </Animated.View>
         )}
+      {/* ─── DAILY BONUS POPUP ─── */}
+      {dailyBonusShow && gameState === 'START' && (
+        <View style={styles.dailyBonusOverlay}>
+          <View style={styles.dailyBonusCard}>
+            <Text style={{ fontSize: 40, marginBottom: 8 }}>🎁</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 3, marginBottom: 4 }}>DAILY BONUS</Text>
+            <Text style={{ fontSize: 48, fontWeight: '900', color: '#F0C75E' }}>+{dailyBonusAmount}</Text>
+            <Text style={{ fontSize: 20, fontWeight: '700', color: '#4A3F35', marginBottom: 4 }}>🍡</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 }}>
+              <Text style={{ fontSize: 13, color: '#8B7E74', fontWeight: '600' }}>🔥 {loginStreak} day streak!</Text>
+            </View>
+            <TouchableOpacity style={styles.dailyBonusBtn} onPress={() => setDailyBonusShow(false)} activeOpacity={0.85}>
+              <Text style={styles.dailyBonusBtnText}>Claim</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
       </View>
     </Animated.View>
   );
@@ -1935,7 +2272,7 @@ const styles = StyleSheet.create({
   burstRing: { position: 'absolute', width: 140, height: 140, borderRadius: 70, borderWidth: 12, top: -70, alignSelf: 'center', zIndex: 15 },
   frameLabel: { fontSize: 26, fontWeight: '900', opacity: 0.7, letterSpacing: 1 },
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', zIndex: 100 },
-  headsUpLayer: { position: 'absolute', top: 60, left: 0, right: 0, bottom: 0, alignItems: 'center' },
+  headsUpLayer: { position: 'absolute', top: 60, left: 0, right: 0, bottom: 0, alignItems: 'center', zIndex: 40 },
 
   // HUD
   hudTopBar: { flexDirection: 'row', gap: 15 },
@@ -2048,17 +2385,17 @@ const styles = StyleSheet.create({
   buyBtnTextDisabled: { color: '#C4B5A5' },
 
   // ─── GAME OVER ───
-  gameOverScreen: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(60,40,35,0.4)', paddingHorizontal: 30 },
+  gameOverScreen: { flex: 1, width: '100%', backgroundColor: 'rgba(60,40,35,0.4)', paddingHorizontal: 30 },
   gameOverCard: {
-    backgroundColor: '#FFF9F0', borderRadius: 28, paddingHorizontal: 36, paddingVertical: 36,
-    alignItems: 'center', width: '100%', maxWidth: 340, marginBottom: 40,
+    backgroundColor: '#FFF9F0', borderRadius: 28, paddingHorizontal: 28, paddingVertical: 24,
+    alignItems: 'center', width: '100%', maxWidth: 340, marginBottom: 16,
     borderWidth: 3, borderColor: '#E8D8C8',
     shadowColor: '#8A6A5A', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.3, shadowRadius: 30,
   },
   gameOverTitle: { fontSize: 38, fontWeight: '900', color: '#C85070', letterSpacing: 1 },
   scoreArea: { marginTop: 20, alignItems: 'center' },
   scoreLabel: { fontSize: 14, fontWeight: '800', color: '#8B7E74', letterSpacing: 2 },
-  scoreNum: { fontSize: 68, fontWeight: '900', color: '#4A3F35', marginVertical: 8 },
+  scoreNum: { fontSize: 56, fontWeight: '900', color: '#4A3F35', marginVertical: 6 },
   bestText: { fontSize: 14, fontWeight: '800', color: '#C4B5A5', marginTop: 4 },
   comboResultText: { fontSize: 14, fontWeight: '800', color: '#F0C75E', marginTop: 8 },
   earnedCoinsText: { fontSize: 20, fontWeight: '900', color: '#F0C75E', marginTop: 12 },
@@ -2072,11 +2409,14 @@ const styles = StyleSheet.create({
   homeBtn: { paddingHorizontal: 40, paddingVertical: 12, borderRadius: 999, borderWidth: 3, borderColor: '#D4C4B0' },
   homeBtnText: { color: '#8B7E74', fontSize: 16, fontWeight: '900', letterSpacing: 2 },
 
-  newBestBadge: { backgroundColor: '#F0C75E', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, marginTop: 8, shadowColor: '#F0C75E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10 },
-  newBestText: { color: '#FFF', fontSize: 14, fontWeight: '900', letterSpacing: 2 },
-
   // Ad Continue
   adContinueBtn: { backgroundColor: '#7BA870', paddingHorizontal: 48, paddingVertical: 16, borderRadius: 999, borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)', shadowColor: '#7BA870', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 20, alignItems: 'center' },
   adContinueBtnText: { color: '#FFF', fontSize: 22, fontWeight: '900', letterSpacing: 2 },
   adContinueSubText: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '800', marginTop: 2, letterSpacing: 1 },
+
+  // ─── DAILY BONUS ───
+  dailyBonusOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', zIndex: 999 },
+  dailyBonusCard: { backgroundColor: '#FFF9F0', borderRadius: 28, paddingHorizontal: 40, paddingVertical: 36, alignItems: 'center', width: '80%', maxWidth: 320, borderWidth: 3, borderColor: '#E8D8C8', shadowColor: '#8A6A5A', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.3, shadowRadius: 30 },
+  dailyBonusBtn: { backgroundColor: '#C85070', paddingHorizontal: 48, paddingVertical: 16, borderRadius: 999, shadowColor: '#C85070', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12 },
+  dailyBonusBtnText: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
 });
