@@ -22,6 +22,7 @@ import {
 } from '../constants';
 import { interstitial, rewarded } from '../ads';
 import type { Direction, TargetType, Inventory, GameItem, MochiSkin, GameScreenState } from '../types';
+import { t, LANG_CYCLE, type Lang } from '../i18n';
 
 export function useGameLogic() {
   // ─── Game state ───
@@ -54,6 +55,9 @@ export function useGameLogic() {
   const [adsRemoved, setAdsRemoved] = useState(false);
   const [watchAdCount, setWatchAdCount] = useState(0);
 
+  // ─── Language ───
+  const [lang, setLang] = useState<Lang>('en');
+
   // ─── Daily bonus ───
   const [dailyBonusShow, setDailyBonusShow] = useState(false);
   const [dailyBonusAmount, setDailyBonusAmount] = useState(0);
@@ -71,6 +75,7 @@ export function useGameLogic() {
   const [homeHappy, setHomeHappy] = useState(false);
 
   // ─── Refs ───
+  const langRef = useRef(lang); langRef.current = lang;
   const gameStateRef = useRef(gameState); gameStateRef.current = gameState;
   const targetShapeRef = useRef(targetShape); targetShapeRef.current = targetShape;
   const directionRef = useRef<Direction>('top');
@@ -216,6 +221,7 @@ export function useGameLogic() {
     AsyncStorage.getItem('unlockedSkins').then(val => { if (val) setUnlockedSkinIds(JSON.parse(val)); });
     AsyncStorage.getItem('inventory').then(val => { if (val) setInventory(JSON.parse(val)); });
     AsyncStorage.getItem('adsRemoved').then(val => { if (val === 'true') setAdsRemoved(true); });
+    AsyncStorage.getItem('lang').then(val => { if (val) setLang(val as Lang); });
 
     const today = new Date().toDateString();
     AsyncStorage.getItem('watchAdDate').then(date => {
@@ -411,7 +417,7 @@ export function useGameLogic() {
         if (isDouble) {
           doubleCountRef.current--;
           setDoubleCount(doubleCountRef.current);
-          showItemPopup('✨ x2 SCORE!', '#C4A030');
+          showItemPopup(t('popupDouble', langRef.current) as string, '#C4A030');
         }
 
         setScore(s => {
@@ -456,7 +462,7 @@ export function useGameLogic() {
             AsyncStorage.setItem('coins', String(newTotal));
             return newTotal;
           });
-          showItemPopup('+3 🍡', '#F0C75E');
+          showItemPopup(t('popupCoins', langRef.current) as string, '#F0C75E');
         }
 
         setCombo(c => {
@@ -604,7 +610,7 @@ export function useGameLogic() {
       dur *= 2;
       slowCountRef.current--;
       setSlowCount(slowCountRef.current);
-      showItemPopup('🐢 SLOW!', '#8DB580');
+      showItemPopup(t('popupSlow', langRef.current) as string, '#8DB580');
     }
 
     Animated.timing(fallAnim, { toValue: endVal, duration: dur, easing: Easing.linear, useNativeDriver: false }).start(({ finished }) => {
@@ -861,6 +867,12 @@ export function useGameLogic() {
     },
   })).current;
 
+  const cycleLang = useCallback(() => {
+    const next = LANG_CYCLE[(LANG_CYCLE.indexOf(langRef.current) + 1) % LANG_CYCLE.length];
+    setLang(next);
+    AsyncStorage.setItem('lang', next);
+  }, []);
+
   // ─── Derived values ───
   const currentSkin = SKINS.find(s => s.id === selectedSkinId) || SKINS[0];
   const isDead = gameState === 'OVER';
@@ -905,5 +917,7 @@ export function useGameLogic() {
     buySkin, selectSkin, buyItem, toggleActiveItem, watchAdForCoins, buyIap,
     handleHomeTap, setGameState,
     panResponder,
+    // Language
+    lang, cycleLang,
   };
 }

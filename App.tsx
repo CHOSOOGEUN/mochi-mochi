@@ -11,6 +11,7 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { ShopScreen } from './src/screens/ShopScreen';
 import { GameOverScreen } from './src/screens/GameOverScreen';
 import styles from './src/styles';
+import { t } from './src/i18n';
 import {
   BASE_DIM, PLAYER_CENTER_Y, TARGETS, SAKURA_POSITIONS, SCREEN_W, SCREEN_H,
 } from './src/constants';
@@ -21,6 +22,7 @@ export default function App() {
   const isDead = g.gameState === 'OVER';
   const currentTarget = TARGETS[g.targetShape];
   const { wobbleRotate, shakeX, targetRotate, idleScale, idleY } = g;
+  const L = g.lang;
 
   return (
     <Animated.View
@@ -132,7 +134,7 @@ export default function App() {
                 { translateY: g.shieldBreakAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) },
               ],
             }}>
-              <Text style={{ fontSize: 22, fontWeight: '900', color: '#A0D8EF', textAlign: 'center' }}>🛡️ SHIELD!</Text>
+              <Text style={{ fontSize: 22, fontWeight: '900', color: '#A0D8EF', textAlign: 'center' }}>{t('shieldBreak', L) as string}</Text>
             </Animated.View>
           )}
           <View style={{
@@ -191,10 +193,10 @@ export default function App() {
             flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
             borderBottomWidth: 2, borderBottomColor: 'rgba(255,255,255,0.4)',
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600', marginRight: 10 }}>レベルアップ！</Text>
-            <Text style={{ color: '#FFE566', fontSize: 32, fontWeight: '900', letterSpacing: 1 }}>Level {g.level}</Text>
-            {g.level === 4 && <Text style={{ color: '#FFE566', fontSize: 13, fontWeight: '900', marginLeft: 10 }}>↓ Bottom incoming!</Text>}
-            {g.level !== 4 && <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginLeft: 10 }}>Stage {g.level}</Text>}
+            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600', marginRight: 10 }}>{t('levelUpLabel', L) as string}</Text>
+            <Text style={{ color: '#FFE566', fontSize: 32, fontWeight: '900', letterSpacing: 1 }}>{(t('level', L) as (n: number) => string)(g.level)}</Text>
+            {g.level === 4 && <Text style={{ color: '#FFE566', fontSize: 13, fontWeight: '900', marginLeft: 10 }}>{t('bottomIncoming', L) as string}</Text>}
+            {g.level !== 4 && <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginLeft: 10 }}>{(t('stage', L) as (n: number) => string)(g.level)}</Text>}
           </Animated.View>
         )}
 
@@ -233,7 +235,7 @@ export default function App() {
             <View style={styles.popupArea}>
               {g.combo >= 2 && (
                 <Animated.View style={[styles.comboBadge, { transform: [{ scale: g.comboAnim }] }]}>
-                  <Text style={styles.comboText}>{g.combo} COMBO!</Text>
+                  <Text style={styles.comboText}>{(t('combo', L) as (n: number) => string)(g.combo)}</Text>
                 </Animated.View>
               )}
             </View>
@@ -265,6 +267,7 @@ export default function App() {
             inventory={g.inventory}
             activeItems={g.activeItems}
             adsRemoved={g.adsRemoved}
+            lang={g.lang}
             furinSwayAnim={g.furinSwayAnim}
             titleEntryAnim={g.titleEntryAnim}
             titleShimmerAnim={g.titleShimmerAnim}
@@ -272,6 +275,7 @@ export default function App() {
             screenFadeAnim={g.screenFadeAnim}
             onPlay={g.startGame}
             onShop={() => g.setGameState('SHOP')}
+            onCycleLang={g.cycleLang}
             onToggleItem={g.toggleActiveItem}
             onBuyItem={g.buyItem}
           />
@@ -287,6 +291,7 @@ export default function App() {
             unlockedSkinIds={g.unlockedSkinIds}
             adsRemoved={g.adsRemoved}
             watchAdCount={g.watchAdCount}
+            lang={g.lang}
             setShopTab={g.setShopTab}
             onBack={g.goHome}
             onBuySkin={g.buySkin}
@@ -311,6 +316,7 @@ export default function App() {
             coins={g.coins}
             inventory={g.inventory}
             activeItems={g.activeItems}
+            lang={g.lang}
             gameOverSlideAnim={g.gameOverSlideAnim}
             statAnim0={g.statAnim0}
             statAnim1={g.statAnim1}
@@ -330,14 +336,14 @@ export default function App() {
           <View style={styles.dailyBonusOverlay}>
             <View style={styles.dailyBonusCard}>
               <Text style={{ fontSize: 40, marginBottom: 8 }}>🎁</Text>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 3, marginBottom: 4 }}>DAILY BONUS</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 3, marginBottom: 4 }}>{t('dailyBonus', L) as string}</Text>
               <Text style={{ fontSize: 48, fontWeight: '900', color: '#F0C75E' }}>+{g.dailyBonusAmount}</Text>
               <Text style={{ fontSize: 20, fontWeight: '700', color: '#4A3F35', marginBottom: 4 }}>🍡</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 }}>
-                <Text style={{ fontSize: 13, color: '#8B7E74', fontWeight: '600' }}>🔥 {g.loginStreak} day streak!</Text>
+                <Text style={{ fontSize: 13, color: '#8B7E74', fontWeight: '600' }}>{(t('streak', L) as (n: number) => string)(g.loginStreak)}</Text>
               </View>
               <TouchableOpacity style={styles.dailyBonusBtn} onPress={() => g.setDailyBonusShow(false)} activeOpacity={0.85}>
-                <Text style={styles.dailyBonusBtnText}>Claim</Text>
+                <Text style={styles.dailyBonusBtnText}>{t('claim', L) as string}</Text>
               </TouchableOpacity>
             </View>
           </View>

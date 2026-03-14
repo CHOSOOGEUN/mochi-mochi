@@ -5,6 +5,7 @@ import { bannerAdUnitId } from '../ads';
 import { SKINS, GAME_ITEMS, IAP_BUNDLES, IAP_SKUS } from '../constants';
 import styles from '../styles';
 import { MochiPattern } from '../components/MochiCharacter';
+import { t, type Lang } from '../i18n';
 import type { Inventory, MochiSkin } from '../types';
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
   unlockedSkinIds: string[];
   adsRemoved: boolean;
   watchAdCount: number;
+  lang: Lang;
   setShopTab: (tab: 'skins' | 'items' | 'coins') => void;
   onBack: () => void;
   onBuySkin: (skin: MochiSkin) => void;
@@ -26,14 +28,14 @@ type Props = {
 
 export const ShopScreen: React.FC<Props> = ({
   coins, shopTab, inventory, selectedSkinId, unlockedSkinIds,
-  adsRemoved, watchAdCount,
+  adsRemoved, watchAdCount, lang,
   setShopTab, onBack, onBuySkin, onSelectSkin, onBuyItem, onWatchAd, onBuyIap,
 }) => (
   <View style={styles.shopScreen}>
     {/* Header */}
     <View style={styles.shopHeader}>
       <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-        <Text style={styles.shopBackText}>← BACK</Text>
+        <Text style={styles.shopBackText}>{t('back', lang) as string}</Text>
       </TouchableOpacity>
       <Text style={styles.shopCoins}>🍡 {coins}</Text>
     </View>
@@ -48,7 +50,7 @@ export const ShopScreen: React.FC<Props> = ({
           activeOpacity={0.7}
         >
           <Text style={[styles.shopTabText, shopTab === tab && styles.shopTabTextActive]}>
-            {tab === 'coins' ? '🍡 Buy' : tab.toUpperCase()}
+            {tab === 'coins' ? t('buyCoins', lang) as string : tab === 'skins' ? t('skins', lang) as string : t('items', lang) as string}
           </Text>
         </TouchableOpacity>
       ))}
@@ -58,7 +60,7 @@ export const ShopScreen: React.FC<Props> = ({
     <ScrollView style={styles.shopContent} contentContainerStyle={styles.shopContentInner} showsVerticalScrollIndicator={false}>
       {shopTab === 'coins' && (
         <View style={styles.itemList}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 2, textAlign: 'center', marginBottom: 16 }}>COINS</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 2, textAlign: 'center', marginBottom: 16 }}>{t('coinsHeader', lang) as string}</Text>
           {IAP_BUNDLES.map(bundle => (
             <TouchableOpacity
               key={bundle.sku}
@@ -71,10 +73,10 @@ export const ShopScreen: React.FC<Props> = ({
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{bundle.label}</Text>
                 {bundle.sku === IAP_SKUS.removeAds && (
-                  <Text style={styles.itemDesc}>Permanently removes all ads</Text>
+                  <Text style={styles.itemDesc}>{t('removeAdsDesc', lang) as string}</Text>
                 )}
                 {adsRemoved && bundle.sku === IAP_SKUS.removeAds && (
-                  <Text style={[styles.itemOwned, { color: '#7BA870' }]}>✓ Purchased</Text>
+                  <Text style={[styles.itemOwned, { color: '#7BA870' }]}>{t('purchased', lang) as string}</Text>
                 )}
               </View>
               <View style={[styles.buyBtn, { backgroundColor: bundle.sku === IAP_SKUS.removeAds ? '#C85070' : '#F0C75E', borderColor: bundle.sku === IAP_SKUS.removeAds ? '#A03050' : '#D4A030' }]}>
@@ -83,7 +85,7 @@ export const ShopScreen: React.FC<Props> = ({
             </TouchableOpacity>
           ))}
           <Text style={{ fontSize: 11, color: '#C4B5A5', textAlign: 'center', marginTop: 12, lineHeight: 16 }}>
-            {'Payment will be charged to your iTunes/Google Play account.\nRefunds follow each store\'s refund policy.'}
+            {t('iapDisclaimer', lang) as string}
           </Text>
         </View>
       )}
@@ -109,11 +111,11 @@ export const ShopScreen: React.FC<Props> = ({
                 <Text style={styles.skinName}>{skin.name}</Text>
                 {selected ? (
                   <View style={styles.selectedBadge}>
-                    <Text style={styles.selectedBadgeText}>USING</Text>
+                    <Text style={styles.selectedBadgeText}>{t('using', lang) as string}</Text>
                   </View>
                 ) : owned ? (
                   <TouchableOpacity style={styles.selectBtn} onPress={() => onSelectSkin(skin.id)} activeOpacity={0.7}>
-                    <Text style={styles.selectBtnText}>SELECT</Text>
+                    <Text style={styles.selectBtnText}>{t('select', lang) as string}</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
@@ -139,9 +141,9 @@ export const ShopScreen: React.FC<Props> = ({
               <View key={item.id} style={styles.itemCard}>
                 <Text style={styles.itemIcon}>{item.icon}</Text>
                 <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemDesc}>{item.desc}</Text>
-                  <Text style={styles.itemOwned}>Owned: {count}</Text>
+                  <Text style={styles.itemName}>{t(`item_${item.id}_name` as any, lang) as string}</Text>
+                  <Text style={styles.itemDesc}>{t(`item_${item.id}_desc` as any, lang) as string}</Text>
+                  <Text style={styles.itemOwned}>{(t('owned', lang) as (n: number) => string)(count)}</Text>
                 </View>
                 <TouchableOpacity
                   style={[styles.buyBtn, !canBuy && styles.buyBtnDisabled]}
@@ -168,12 +170,12 @@ export const ShopScreen: React.FC<Props> = ({
             >
               <Text style={styles.itemIcon}>🎬</Text>
               <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>Watch Ad</Text>
-                <Text style={styles.itemDesc}>+20 🍡 per view</Text>
-                <Text style={styles.itemOwned}>{watchAdCount >= 3 ? 'Come back tomorrow!' : `Today: ${watchAdCount}/3`}</Text>
+                <Text style={styles.itemName}>{t('watchAd', lang) as string}</Text>
+                <Text style={styles.itemDesc}>{t('watchAdReward', lang) as string}</Text>
+                <Text style={styles.itemOwned}>{watchAdCount >= 3 ? t('watchAdLimit', lang) as string : (t('watchAdToday', lang) as (n: number) => string)(watchAdCount)}</Text>
               </View>
               <View style={[styles.buyBtn, { backgroundColor: watchAdCount >= 3 ? '#D4C4B0' : '#F0C75E', borderColor: '#D4A030' }]}>
-                <Text style={[styles.buyBtnText, { color: '#4A3F35' }]}>FREE</Text>
+                <Text style={[styles.buyBtnText, { color: '#4A3F35' }]}>{t('free', lang) as string}</Text>
               </View>
             </TouchableOpacity>
           )}

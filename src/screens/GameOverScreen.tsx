@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { GAME_ITEMS } from '../constants';
 import styles from '../styles';
+import { t, type Lang } from '../i18n';
 import type { Inventory } from '../types';
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
   coins: number;
   inventory: Inventory;
   activeItems: { shield: boolean; slow: boolean; double: boolean };
+  lang: Lang;
   gameOverSlideAnim: Animated.Value;
   statAnim0: Animated.Value;
   statAnim1: Animated.Value;
@@ -31,7 +33,7 @@ type Props = {
 
 export const GameOverScreen: React.FC<Props> = ({
   score, displayScore, highScore, bestCombo, earnedCoins, adMultiplierUsed,
-  adContinueCount, adsRemoved, coins, inventory, activeItems,
+  adContinueCount, adsRemoved, coins, inventory, activeItems, lang,
   gameOverSlideAnim, statAnim0, statAnim1, statAnim2, stampAnim,
   onRetry, onHome, onContinue, onMultiplyCoins, onToggleItem, onBuyItem,
 }) => (
@@ -54,11 +56,11 @@ export const GameOverScreen: React.FC<Props> = ({
         </View>
 
         <Text style={{ fontSize: 14, fontWeight: '600', color: '#B0948A', letterSpacing: 4, marginBottom: 4 }}>ぺちゃんこ</Text>
-        <Text style={styles.gameOverTitle}>SQUISHED!</Text>
+        <Text style={styles.gameOverTitle}>{t('squished', lang) as string}</Text>
         <View style={{ width: 60, height: 2, backgroundColor: '#E8C4C4', borderRadius: 1, marginBottom: 12 }} />
 
         <View style={styles.scoreArea}>
-          <Text style={styles.scoreLabel}>SCORE</Text>
+          <Text style={styles.scoreLabel}>{t('score', lang) as string}</Text>
           <Animated.View style={{ opacity: statAnim0, transform: [{ translateY: statAnim0.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>
             <Text style={styles.scoreNum}>{displayScore}</Text>
           </Animated.View>
@@ -76,17 +78,17 @@ export const GameOverScreen: React.FC<Props> = ({
                 alignItems: 'center', justifyContent: 'center',
                 shadowColor: '#C85070', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8,
               }}>
-                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '900', lineHeight: 14, textAlign: 'center' }}>{'NEW\nBEST'}</Text>
+                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '900', lineHeight: 14, textAlign: 'center' }}>{t('newBest', lang) as string}</Text>
               </View>
             </Animated.View>
           )}
 
           {score <= highScore && highScore > 0 && (
-            <Text style={styles.bestText}>BEST: {highScore}</Text>
+            <Text style={styles.bestText}>{t('best', lang) as string}: {highScore}</Text>
           )}
 
           <Animated.View style={{ opacity: statAnim1, transform: [{ translateY: statAnim1.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>
-            {bestCombo > 1 && <Text style={styles.comboResultText}>Best Combo: {bestCombo}</Text>}
+            {bestCombo > 1 && <Text style={styles.comboResultText}>{t('bestCombo', lang) as string}: {bestCombo}</Text>}
           </Animated.View>
 
           <Animated.View style={{ opacity: statAnim2, transform: [{ translateY: statAnim2.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>
@@ -121,9 +123,9 @@ export const GameOverScreen: React.FC<Props> = ({
       <View style={{ gap: 12, alignItems: 'center' }}>
         {adContinueCount < 2 && score > 0 && (
           <TouchableOpacity style={styles.adContinueBtn} onPress={onContinue} activeOpacity={0.85}>
-            <Text style={styles.adContinueBtnText}>▶ CONTINUE</Text>
+            <Text style={styles.adContinueBtnText}>{t('continue_', lang) as string}</Text>
             <Text style={styles.adContinueSubText}>
-              {adsRemoved ? 'FREE' : `Watch Ad (${adContinueCount}/2)`}
+              {adsRemoved ? t('adsRemovedFree', lang) as string : (t('watchAdContinue', lang) as (n: number) => string)(adContinueCount)}
             </Text>
           </TouchableOpacity>
         )}
@@ -133,15 +135,15 @@ export const GameOverScreen: React.FC<Props> = ({
             onPress={onMultiplyCoins}
             activeOpacity={0.85}
           >
-            <Text style={[styles.adContinueBtnText, { color: '#4A3F35' }]}>💰 3x COINS</Text>
-            <Text style={[styles.adContinueSubText, { color: '#8B7E74' }]}>Watch Ad to multiply reward!</Text>
+            <Text style={[styles.adContinueBtnText, { color: '#4A3F35' }]}>{t('tripleCoins', lang) as string}</Text>
+            <Text style={[styles.adContinueSubText, { color: '#8B7E74' }]}>{t('watchAdMultiply', lang) as string}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.85}>
-          <Text style={styles.retryButtonText}>RETRY</Text>
+          <Text style={styles.retryButtonText}>{t('retry', lang) as string}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.homeBtn} onPress={onHome} activeOpacity={0.85}>
-          <Text style={styles.homeBtnText}>HOME</Text>
+          <Text style={styles.homeBtnText}>{t('home', lang) as string}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

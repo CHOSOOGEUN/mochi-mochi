@@ -5,6 +5,7 @@ import { bannerAdUnitId } from '../ads';
 import { GAME_ITEMS, SCREEN_H } from '../constants';
 import styles from '../styles';
 import { Furin } from '../components/illustrations/Decorative';
+import { t, LANG_LABELS, type Lang } from '../i18n';
 import type { Inventory } from '../types';
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
   inventory: Inventory;
   activeItems: { shield: boolean; slow: boolean; double: boolean };
   adsRemoved: boolean;
+  lang: Lang;
   furinSwayAnim: Animated.Value;
   titleEntryAnim: Animated.Value;
   titleShimmerAnim: Animated.Value;
@@ -23,17 +25,25 @@ type Props = {
   onShop: () => void;
   onToggleItem: (id: keyof Inventory) => void;
   onBuyItem: (item: typeof GAME_ITEMS[0]) => void;
+  onCycleLang: () => void;
 };
 
 export const HomeScreen: React.FC<Props> = ({
-  coins, highScore, showTutorial, inventory, activeItems, adsRemoved,
+  coins, highScore, showTutorial, inventory, activeItems, adsRemoved, lang,
   furinSwayAnim, titleEntryAnim, titleShimmerAnim, playPulseAnim, screenFadeAnim,
-  onPlay, onShop, onToggleItem, onBuyItem,
+  onPlay, onShop, onToggleItem, onBuyItem, onCycleLang,
 }) => (
   <Animated.View style={[styles.homeScreen, { opacity: screenFadeAnim }]}>
-    {/* Coin display */}
+    {/* Coin display + Lang toggle */}
     <View style={styles.coinBar}>
       <Text style={styles.coinText}>🍡 {coins}</Text>
+      <TouchableOpacity
+        onPress={onCycleLang}
+        activeOpacity={0.7}
+        style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: 'rgba(200,80,112,0.12)', borderRadius: 12, borderWidth: 1, borderColor: '#E8B4C2' }}
+      >
+        <Text style={{ fontSize: 13, fontWeight: '700', color: '#C85070' }}>{LANG_LABELS[lang]}</Text>
+      </TouchableOpacity>
     </View>
 
     {/* Top decorative bar */}
@@ -86,7 +96,7 @@ export const HomeScreen: React.FC<Props> = ({
             <View style={styles.tutCircle}>
               <Text style={styles.tutStepEmoji}>↕️</Text>
             </View>
-            <Text style={styles.tutLabel}>Drag to stretch</Text>
+            <Text style={styles.tutLabel}>{t('subtitleDrag', lang) as string}</Text>
           </View>
           <View style={styles.tutArrow}>
             <Text style={{ color: '#D4C4B0', fontSize: 18 }}>→</Text>
@@ -95,13 +105,13 @@ export const HomeScreen: React.FC<Props> = ({
             <View style={styles.tutCircle}>
               <Text style={styles.tutStepEmoji}>⭕</Text>
             </View>
-            <Text style={styles.tutLabel}>Match the shape</Text>
+            <Text style={styles.tutLabel}>{t('subtitleMatch', lang) as string}</Text>
           </View>
         </View>
       ) : (
         <View style={styles.highScoreArea}>
           <View style={styles.highScoreCard}>
-            <Text style={styles.highScoreLabel}>YOUR BEST</Text>
+            <Text style={styles.highScoreLabel}>{t('yourBest', lang) as string}</Text>
             <View style={styles.highScoreRow}>
               <Text style={styles.highScoreEmoji}>🏅</Text>
               <Text style={styles.highScoreNum}>{highScore}</Text>
@@ -141,11 +151,11 @@ export const HomeScreen: React.FC<Props> = ({
     }}>
       <Animated.View style={{ transform: [{ scale: playPulseAnim }] }}>
         <TouchableOpacity style={styles.playButton} onPress={onPlay} activeOpacity={0.85}>
-          <Text style={styles.playButtonText}>PLAY</Text>
+          <Text style={styles.playButtonText}>{t('play', lang) as string}</Text>
         </TouchableOpacity>
       </Animated.View>
       <TouchableOpacity style={styles.shopBtn} onPress={onShop} activeOpacity={0.85}>
-        <Text style={styles.shopBtnText}>🛍️ SHOP</Text>
+        <Text style={styles.shopBtnText}>{t('shop', lang) as string}</Text>
       </TouchableOpacity>
     </Animated.View>
 
