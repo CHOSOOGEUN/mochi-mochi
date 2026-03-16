@@ -18,4 +18,4 @@ export const rewarded = RewardedAd.createForAdRequest(rewardedAdUnitId, {
 
 mobileAds().initialize().then(adapterStatuses => {
   console.log('AdMob Initialized:', adapterStatuses);
-});
+}).catch(e => console.log('AdMob init failed:', e));

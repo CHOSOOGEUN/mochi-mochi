@@ -3,7 +3,6 @@ export type Lang = 'en' | 'ko' | 'ja' | 'zh';
 const translations = {
   en: {
     // Home
-    subtitleGame: 'shape matching game',
     subtitleDrag: 'Drag to stretch',
     subtitleMatch: 'Match the shape',
     yourBest: 'YOUR BEST',
@@ -63,7 +62,6 @@ const translations = {
     item_double_desc: '2x score this game',
   },
   ko: {
-    subtitleGame: '도형 맞추기 게임',
     subtitleDrag: '드래그로 늘려요',
     subtitleMatch: '도형을 맞춰요',
     yourBest: '최고 기록',
@@ -117,7 +115,6 @@ const translations = {
     item_double_desc: '이번 게임 점수 2배',
   },
   ja: {
-    subtitleGame: '形合わせゲーム',
     subtitleDrag: '伸ばしてね',
     subtitleMatch: '形を合わせよう',
     yourBest: 'ベストスコア',
@@ -171,7 +168,6 @@ const translations = {
     item_double_desc: 'このゲームのスコア2倍',
   },
   zh: {
-    subtitleGame: '形狀配對遊戲',
     subtitleDrag: '拖動來伸展',
     subtitleMatch: '配對形狀',
     yourBest: '最佳記錄',

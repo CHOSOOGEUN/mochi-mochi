@@ -18,7 +18,7 @@ import {
 import {
   BASE_DIM, MIN_DIM, MAX_DIM, PLAYER_CENTER_Y,
   TARGETS, TARGET_TYPES, BG_COLORS, BANNER_HIDE_Y,
-  IAP_SKUS, IAP_BUNDLES, SKINS, GAME_ITEMS, DEFAULT_INVENTORY,
+  IAP_SKUS, IAP_BUNDLES, SKINS, DEFAULT_INVENTORY,
 } from '../constants';
 import { interstitial, rewarded } from '../ads';
 import type { Direction, TargetType, Inventory, GameItem, MochiSkin, GameScreenState } from '../types';
@@ -216,24 +216,24 @@ export function useGameLogic() {
 
   // ─── Persist / load data ───
   useEffect(() => {
-    AsyncStorage.getItem('highScore').then(val => { if (val) setHighScore(parseInt(val, 10)); });
-    AsyncStorage.getItem('tutorialDone').then(val => { if (val === 'true') setShowTutorial(false); });
-    AsyncStorage.getItem('selectedSkin').then(val => { if (val) setSelectedSkinId(val); });
-    AsyncStorage.getItem('unlockedSkins').then(val => { if (val) setUnlockedSkinIds(JSON.parse(val)); });
-    AsyncStorage.getItem('inventory').then(val => { if (val) setInventory(JSON.parse(val)); });
-    AsyncStorage.getItem('adsRemoved').then(val => { if (val === 'true') setAdsRemoved(true); });
-    AsyncStorage.getItem('lang').then(val => { if (val) setLang(val as Lang); });
+    AsyncStorage.getItem('highScore').then(val => { if (val) setHighScore(parseInt(val, 10)); }).catch(() => {});
+    AsyncStorage.getItem('tutorialDone').then(val => { if (val === 'true') setShowTutorial(false); }).catch(() => {});
+    AsyncStorage.getItem('selectedSkin').then(val => { if (val) setSelectedSkinId(val); }).catch(() => {});
+    AsyncStorage.getItem('unlockedSkins').then(val => { if (val) setUnlockedSkinIds(JSON.parse(val)); }).catch(() => {});
+    AsyncStorage.getItem('inventory').then(val => { if (val) setInventory(JSON.parse(val)); }).catch(() => {});
+    AsyncStorage.getItem('adsRemoved').then(val => { if (val === 'true') setAdsRemoved(true); }).catch(() => {});
+    AsyncStorage.getItem('lang').then(val => { if (val) setLang(val as Lang); }).catch(() => {});
 
     const today = new Date().toDateString();
     AsyncStorage.getItem('watchAdDate').then(date => {
       if (date === today) {
-        AsyncStorage.getItem('watchAdCount').then(c => { if (c) setWatchAdCount(parseInt(c, 10)); });
+        AsyncStorage.getItem('watchAdCount').then(c => { if (c) setWatchAdCount(parseInt(c, 10)); }).catch(() => {});
       } else {
-        AsyncStorage.setItem('watchAdDate', today);
-        AsyncStorage.setItem('watchAdCount', '0');
+        AsyncStorage.setItem('watchAdDate', today).catch(() => {});
+        AsyncStorage.setItem('watchAdCount', '0').catch(() => {});
         setWatchAdCount(0);
       }
-    });
+    }).catch(() => {});
 
     AsyncStorage.multiGet(['coins', 'lastLoginDate', 'loginStreak']).then(pairs => {
       const savedCoins = pairs[0][1] ? parseInt(pairs[0][1], 10) : 0;
@@ -336,6 +336,7 @@ export function useGameLogic() {
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       if (scoreCountListenerRef.current) scoreCountAnim.removeListener(scoreCountListenerRef.current);
+      if (happyTimerRef.current) clearTimeout(happyTimerRef.current);
     };
   }, []);
 
@@ -518,7 +519,7 @@ export function useGameLogic() {
 
           const newDeathCount = deathCount + 1;
           setDeathCount(newDeathCount);
-          AsyncStorage.setItem('deathCount', String(newDeathCount));
+          AsyncStorage.setItem('deathCount', String(newDeathCount)).catch(() => {});
 
           if (!adsRemoved && newDeathCount > 2 && newDeathCount % 3 === 0 && interstitialLoaded) {
             setTimeout(() => interstitial.show(), 800);
@@ -564,12 +565,12 @@ export function useGameLogic() {
           AsyncStorage.getItem('highScore').then(val => {
             const prev = val ? parseInt(val, 10) : 0;
             if (fs > prev) {
-              AsyncStorage.setItem('highScore', String(fs)); setHighScore(fs);
+              AsyncStorage.setItem('highScore', String(fs)).catch(() => {}); setHighScore(fs);
               stampAnim.setValue(3);
               Animated.spring(stampAnim, { toValue: 1, friction: 4, tension: 180, useNativeDriver: true }).start();
               triggerBurst('#C85070');
             }
-          });
+          }).catch(() => {});
         }
       }
     }
