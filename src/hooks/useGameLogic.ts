@@ -89,6 +89,7 @@ export function useGameLogic() {
   const slowCountRef = useRef(0);
   const doubleCountRef = useRef(0);
   const happyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingInterstitialRef = useRef(false);
   const frameRef = useRef<number | undefined>(undefined);
   const scoreCountListenerRef = useRef<string | undefined>(undefined);
   const homeTapCooldown = useRef(false);
@@ -522,7 +523,13 @@ export function useGameLogic() {
           AsyncStorage.setItem('deathCount', String(newDeathCount)).catch(() => {});
 
           if (!adsRemoved && newDeathCount > 2 && newDeathCount % 3 === 0 && interstitialLoaded) {
-            setTimeout(() => interstitial.show(), 800);
+            pendingInterstitialRef.current = true;
+            setTimeout(() => {
+              if (pendingInterstitialRef.current) {
+                pendingInterstitialRef.current = false;
+                interstitial.show();
+              }
+            }, 800);
           }
 
           gameOverSlideAnim.setValue(0);
@@ -726,6 +733,7 @@ export function useGameLogic() {
 
   const multiplyCoinsFromAd = () => {
     if (rewardedLoaded && !adMultiplierUsed && earnedCoins > 0) {
+      pendingInterstitialRef.current = false;
       const unsubscribeClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
         unsubscribeClosed();
         const bonusCoins = earnedCoins * 2;
@@ -737,6 +745,7 @@ export function useGameLogic() {
         setEarnedCoins(earnedCoins * 3);
         setAdMultiplierUsed(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        if (interstitialLoaded) setTimeout(() => interstitial.show(), 300);
       });
       rewarded.show();
     }
