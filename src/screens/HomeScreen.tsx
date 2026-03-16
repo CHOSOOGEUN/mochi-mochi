@@ -5,7 +5,7 @@ import { bannerAdUnitId } from '../ads';
 import { GAME_ITEMS, SCREEN_H } from '../constants';
 import styles from '../styles';
 import { Furin } from '../components/illustrations/Decorative';
-import { t, LANG_LABELS, type Lang } from '../i18n';
+import { t, LANG_LABELS, LANG_CYCLE, type Lang } from '../i18n';
 import type { Inventory } from '../types';
 
 type Props = {
@@ -25,7 +25,7 @@ type Props = {
   onShop: () => void;
   onToggleItem: (id: keyof Inventory) => void;
   onBuyItem: (item: typeof GAME_ITEMS[0]) => void;
-  onCycleLang: () => void;
+  onCycleLang: (lang?: Lang) => void;
 };
 
 export const HomeScreen: React.FC<Props> = ({
@@ -34,16 +34,9 @@ export const HomeScreen: React.FC<Props> = ({
   onPlay, onShop, onToggleItem, onBuyItem, onCycleLang,
 }) => (
   <Animated.View style={[styles.homeScreen, { opacity: screenFadeAnim }]}>
-    {/* Coin display + Lang toggle */}
+    {/* Coin display */}
     <View style={styles.coinBar}>
       <Text style={styles.coinText}>🍡 {coins}</Text>
-      <TouchableOpacity
-        onPress={onCycleLang}
-        activeOpacity={0.7}
-        style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: 'rgba(200,80,112,0.12)', borderRadius: 12, borderWidth: 1, borderColor: '#E8B4C2' }}
-      >
-        <Text style={{ fontSize: 13, fontWeight: '700', color: '#C85070' }}>{LANG_LABELS[lang]}</Text>
-      </TouchableOpacity>
     </View>
 
     {/* Top decorative bar */}
@@ -157,6 +150,27 @@ export const HomeScreen: React.FC<Props> = ({
       <TouchableOpacity style={styles.shopBtn} onPress={onShop} activeOpacity={0.85}>
         <Text style={styles.shopBtnText}>{t('shop', lang) as string}</Text>
       </TouchableOpacity>
+
+      {/* Language selector */}
+      <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+        {LANG_CYCLE.map(l => (
+          <TouchableOpacity
+            key={l}
+            onPress={() => onCycleLang(l)}
+            activeOpacity={0.7}
+            style={{
+              paddingHorizontal: 14, paddingVertical: 7,
+              backgroundColor: lang === l ? '#C85070' : 'rgba(200,80,112,0.1)',
+              borderRadius: 14, borderWidth: 1.5,
+              borderColor: lang === l ? '#A03050' : '#E8B4C2',
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '700', color: lang === l ? '#fff' : '#C85070' }}>
+              {LANG_LABELS[l]}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </Animated.View>
 
     {/* Banner Ad */}

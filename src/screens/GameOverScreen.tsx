@@ -41,7 +41,7 @@ export const GameOverScreen: React.FC<Props> = ({
     opacity: gameOverSlideAnim,
     transform: [{ translateY: gameOverSlideAnim.interpolate({ inputRange: [0, 1], outputRange: [60, 0] }) }],
   }]}>
-    <ScrollView contentContainerStyle={{ alignItems: 'center', paddingVertical: 24 }} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: 48, paddingBottom: 40, flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
       <View style={styles.gameOverCard}>
         {/* Decorative top strip */}
         <View style={{
@@ -98,7 +98,7 @@ export const GameOverScreen: React.FC<Props> = ({
       </View>
 
       {/* Item slots for Retry */}
-      <View style={[styles.itemSlotsRow, { marginTop: -10, marginBottom: 10 }]}>
+      <View style={[styles.itemSlotsRow, { marginTop: 8, marginBottom: 8 }]}>
         {GAME_ITEMS.map(item => {
           const count = inventory[item.id];
           const active = activeItems[item.id];
@@ -120,7 +120,7 @@ export const GameOverScreen: React.FC<Props> = ({
         })}
       </View>
 
-      <View style={{ gap: 12, alignItems: 'center' }}>
+      <View style={{ gap: 10, alignItems: 'center' }}>
         {adContinueCount < 2 && score > 0 && (
           <TouchableOpacity style={styles.adContinueBtn} onPress={onContinue} activeOpacity={0.85}>
             <Text style={styles.adContinueBtnText}>{t('continue_', lang) as string}</Text>

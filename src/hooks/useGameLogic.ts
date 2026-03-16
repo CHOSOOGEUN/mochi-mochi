@@ -84,6 +84,7 @@ export function useGameLogic() {
   const passedRef = useRef(false);
   const comboRef = useRef(combo); comboRef.current = combo;
   const comboCoinsRef = useRef(0);
+  const scoreCoinsRef = useRef(0);
   const shieldActiveRef = useRef(false);
   const slowCountRef = useRef(0);
   const doubleCountRef = useRef(0);
@@ -428,6 +429,8 @@ export function useGameLogic() {
               levelRef.current = newLvl;
               return newLvl;
             });
+            scoreCoinsRef.current += 1;
+            setCoins(prev => { const n = prev + 1; AsyncStorage.setItem('coins', String(n)); return n; });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             playSound(levelUpSfx, 0.8);
             levelUpBannerY.setValue(BANNER_HIDE_Y);
@@ -555,15 +558,8 @@ export function useGameLogic() {
             setDisplayScore(fs);
           }, cd + 100);
 
-          const earned = Math.floor(fs / 3) + comboCoinsRef.current;
+          const earned = scoreCoinsRef.current + comboCoinsRef.current;
           setEarnedCoins(earned);
-          if (earned > 0) {
-            setCoins(prev => {
-              const newTotal = prev + earned;
-              AsyncStorage.setItem('coins', String(newTotal));
-              return newTotal;
-            });
-          }
 
           AsyncStorage.getItem('highScore').then(val => {
             const prev = val ? parseInt(val, 10) : 0;
@@ -655,6 +651,7 @@ export function useGameLogic() {
     scoreRef.current = 0;
     comboRef.current = 0;
     comboCoinsRef.current = 0;
+    scoreCoinsRef.current = 0;
 
     applyActiveItems();
 
@@ -867,8 +864,8 @@ export function useGameLogic() {
     },
   })).current;
 
-  const cycleLang = useCallback(() => {
-    const next = LANG_CYCLE[(LANG_CYCLE.indexOf(langRef.current) + 1) % LANG_CYCLE.length];
+  const cycleLang = useCallback((targetLang?: Lang) => {
+    const next = targetLang ?? LANG_CYCLE[(LANG_CYCLE.indexOf(langRef.current) + 1) % LANG_CYCLE.length];
     setLang(next);
     AsyncStorage.setItem('lang', next);
   }, []);
