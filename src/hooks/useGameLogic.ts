@@ -146,7 +146,7 @@ export function useGameLogic() {
   const levelUpFlashAnim = useRef(new Animated.Value(0)).current;
 
   // ─── Audio ───
-  const bgmPlayer = useAudioPlayer('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3');
+  const bgmPlayer = useAudioPlayer(require('../../assets/audio/bgm.mp3'));
   const popSfx = useAudioPlayer(require('../../assets/audio/pop.mp3'));
   const failSfx = useAudioPlayer(require('../../assets/audio/fail.mp3'));
   const levelUpSfx = useAudioPlayer(require('../../assets/audio/levelup.mp3'));
