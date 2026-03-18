@@ -32,15 +32,15 @@ const styles = StyleSheet.create({
   topDecoSub: { fontSize: 11, fontWeight: '600', color: '#C4B5A5', letterSpacing: 3, marginTop: 6 },
 
   homeTitleCard: {
-    backgroundColor: '#FFF9F0', borderRadius: 28, paddingHorizontal: 36, paddingTop: 32, paddingBottom: 36,
-    alignItems: 'center', width: '100%', maxWidth: 340, marginBottom: 24,
+    backgroundColor: '#FFF9F0', borderRadius: 28, paddingHorizontal: 28, paddingTop: 20, paddingBottom: 22,
+    alignItems: 'center', width: '100%', maxWidth: 340, marginBottom: 14,
     borderWidth: 3, borderColor: '#E8D8C8',
     shadowColor: '#B0948A', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.25, shadowRadius: 30,
   },
-  titleJapanese: { fontSize: 16, fontWeight: '700', color: '#C4B5A5', letterSpacing: 6, marginBottom: 4 },
+  titleJapanese: { fontSize: 14, fontWeight: '700', color: '#C4B5A5', letterSpacing: 6, marginBottom: 2 },
   titleRow: { flexDirection: 'row', alignItems: 'center' },
-  titleMochi: { fontSize: 54, fontWeight: '900', color: '#D4748E', letterSpacing: -1 },
-  titleMochi2: { fontSize: 58, fontWeight: '900', color: '#7BA870', marginTop: -14, letterSpacing: -2 },
+  titleMochi: { fontSize: 46, fontWeight: '900', color: '#D4748E', letterSpacing: -1 },
+  titleMochi2: { fontSize: 50, fontWeight: '900', color: '#7BA870', marginTop: -12, letterSpacing: -2 },
 
   subtitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },
   subtitleLine: { width: 24, height: 1.5, backgroundColor: '#D4C4B0', borderRadius: 1 },
@@ -53,27 +53,27 @@ const styles = StyleSheet.create({
   tutLabel: { fontSize: 11, fontWeight: '800', color: '#8B7E74', textAlign: 'center', maxWidth: 80 },
   tutArrow: { marginTop: -16 },
 
-  highScoreArea: { marginTop: 24, alignItems: 'center', width: '100%' },
-  highScoreCard: { backgroundColor: '#F5EDE0', borderRadius: 18, paddingHorizontal: 30, paddingVertical: 16, alignItems: 'center', borderWidth: 2, borderColor: '#E0D4C6' },
+  highScoreArea: { marginTop: 12, alignItems: 'center', width: '100%' },
+  highScoreCard: { backgroundColor: '#F5EDE0', borderRadius: 18, paddingHorizontal: 24, paddingVertical: 10, alignItems: 'center', borderWidth: 2, borderColor: '#E0D4C6' },
   highScoreLabel: { fontSize: 11, fontWeight: '800', color: '#C4B5A5', letterSpacing: 2 },
   highScoreRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  highScoreEmoji: { fontSize: 22 },
-  highScoreNum: { fontSize: 36, fontWeight: '900', color: '#4A3F35' },
+  highScoreEmoji: { fontSize: 20 },
+  highScoreNum: { fontSize: 30, fontWeight: '900', color: '#4A3F35' },
 
-  itemSlotsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  itemSlotsRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   itemSlot: { backgroundColor: 'rgba(255,249,240,0.9)', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 2, borderColor: '#E0D4C6', alignItems: 'center', gap: 2, shadowColor: '#B0948A', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 6 },
   itemSlotActive: { borderColor: '#7BA870', backgroundColor: '#EEF6E6' },
   itemSlotCount: { fontSize: 10, fontWeight: '800', color: '#8B7E74' },
 
   playButton: {
-    backgroundColor: '#C85070', paddingHorizontal: 72, paddingVertical: 22, borderRadius: 999,
+    backgroundColor: '#C85070', paddingHorizontal: 60, paddingVertical: 16, borderRadius: 999,
     borderWidth: 4, borderColor: 'rgba(255,255,255,0.5)',
     shadowColor: '#C85070', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.45, shadowRadius: 25,
   },
-  playButtonText: { color: '#FFF', fontSize: 28, fontWeight: '900', letterSpacing: 6 },
+  playButtonText: { color: '#FFF', fontSize: 24, fontWeight: '900', letterSpacing: 6 },
 
-  shopBtn: { backgroundColor: '#B8956A', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 999, borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)', shadowColor: '#B8956A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 15 },
-  shopBtnText: { color: '#FFF', fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+  shopBtn: { backgroundColor: '#B8956A', paddingHorizontal: 34, paddingVertical: 11, borderRadius: 999, borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)', shadowColor: '#B8956A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 15 },
+  shopBtnText: { color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 2 },
 
   // ─── SHOP SCREEN ───
   shopScreen: { flex: 1, width: '100%', paddingTop: SCREEN_H * 0.06 },

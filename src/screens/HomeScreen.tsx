@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { bannerAdUnitId } from '../ads';
 import { GAME_ITEMS, SCREEN_H } from '../constants';
@@ -140,7 +140,7 @@ export const HomeScreen: React.FC<Props> = ({
     {/* Buttons */}
     <Animated.View style={{
       transform: [{ scale: titleEntryAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 0, 1] }) }],
-      opacity: titleEntryAnim, alignItems: 'center', gap: 16,
+      opacity: titleEntryAnim, alignItems: 'center', gap: 10,
     }}>
       <Animated.View style={{ transform: [{ scale: playPulseAnim }] }}>
         <TouchableOpacity style={styles.playButton} onPress={onPlay} activeOpacity={0.85}>
