@@ -40,12 +40,14 @@ export const IAP_BUNDLES = [
 
 // ─── Skin System ───
 export const SKINS: MochiSkin[] = [
-  { id: 'classic', name: 'Plain Mochi', body: '#FFF9F0', border: '#F0E6D8', shadow: '#D4C4B0', blush: 'rgba(220,160,130,0.45)', deadBody: '#E8E0D8', deadBorder: '#C4B5A5', price: 0 },
-  { id: 'matcha', name: 'Matcha Mochi', body: '#E8F5E0', border: '#C8DEB8', shadow: '#A8C098', blush: 'rgba(180,200,140,0.4)', deadBody: '#D8E0D0', deadBorder: '#B0BEA0', price: 80 },
-  { id: 'sakura', name: 'Sakura Mochi', body: '#FFE8EE', border: '#F0C8D4', shadow: '#D4A8B4', blush: 'rgba(240,140,160,0.4)', deadBody: '#E8D8DC', deadBorder: '#C4B0B8', price: 200 },
-  { id: 'yomogi', name: 'Yomogi Mochi', body: '#E0ECD0', border: '#B8D0A0', shadow: '#98B080', blush: 'rgba(160,190,120,0.4)', deadBody: '#D0D8C8', deadBorder: '#A8B898', price: 400 },
-  { id: 'anko', name: 'Anko Mochi', body: '#E8D8D0', border: '#C4A898', shadow: '#A08878', blush: 'rgba(180,140,120,0.4)', deadBody: '#D8CCC4', deadBorder: '#B0A090', price: 700 },
-  { id: 'yuzu', name: 'Yuzu Mochi', body: '#FFF8D8', border: '#F0E0A8', shadow: '#D4C488', blush: 'rgba(220,190,100,0.4)', deadBody: '#E8E0D0', deadBorder: '#C4B8A0', price: 1200 },
+  { id: 'classic', name: 'Classic',  body: '#FFF9F0', border: '#F0E6D8', shadow: '#D4C4B0', blush: 'rgba(220,160,130,0.45)', deadBody: '#E8E0D8', deadBorder: '#C4B5A5', price: 0 },
+  { id: 'matcha',  name: 'Matcha',   body: '#D8F0C8', border: '#A8CC90', shadow: '#88B070', blush: 'rgba(130,190,100,0.4)',  deadBody: '#C8D8C0', deadBorder: '#A0B890', price: 100 },
+  { id: 'sakura',  name: 'Sakura',   body: '#FFE0EC', border: '#F0A8BC', shadow: '#D48AAA', blush: 'rgba(240,130,160,0.4)', deadBody: '#E8D0D8', deadBorder: '#C4A0B0', price: 280 },
+  { id: 'ichigo',  name: 'Ichigo',   body: '#FFCCD4', border: '#E890A0', shadow: '#C06878', blush: 'rgba(220,90,110,0.4)',  deadBody: '#E0C0C8', deadBorder: '#BC9098', price: 500 },
+  { id: 'kogeme',  name: 'Kogeme',   body: '#FFEEC0', border: '#D4A840', shadow: '#B08030', blush: 'rgba(210,160,60,0.4)',  deadBody: '#E0D4B0', deadBorder: '#B09868', price: 800 },
+  { id: 'anko',    name: 'Anko',     body: '#D8B8A0', border: '#A87860', shadow: '#885840', blush: 'rgba(190,130,90,0.4)',  deadBody: '#C8B0A0', deadBorder: '#A09080', price: 1100 },
+  { id: 'sumi',    name: 'Sumi',     body: '#786868', border: '#524040', shadow: '#3A2C2C', blush: 'rgba(180,150,140,0.3)', deadBody: '#585050', deadBorder: '#3C3030', price: 1500 },
+  { id: 'yuzu',    name: 'Yuzu',     body: '#FFF4A0', border: '#E8CC30', shadow: '#C4A818', blush: 'rgba(240,200,40,0.4)',  deadBody: '#E8E4C0', deadBorder: '#C8C080', price: 2000 },
 ];
 
 // ─── Game Items ───

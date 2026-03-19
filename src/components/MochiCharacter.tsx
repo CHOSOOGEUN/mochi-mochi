@@ -8,83 +8,132 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
     case 'matcha':
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {[{ t: 48, l: 18, s: 5 }, { t: 52, l: 35, s: 3 }, { t: 55, l: 60, s: 4 }, { t: 50, l: 75, s: 3 }, { t: 58, l: 25, s: 4 }, { t: 56, l: 50, s: 3 }, { t: 53, l: 70, s: 5 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, borderRadius: p.s / 2, backgroundColor: 'rgba(100,160,80,0.2)' }} />
+          {/* Matcha swirl */}
+          <View style={{ position: 'absolute', top: '48%', left: '20%', width: 40, height: 40, borderRadius: 20, borderWidth: 2.5, borderColor: 'rgba(80,140,60,0.2)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '-20deg' }] }} />
+          <View style={{ position: 'absolute', top: '54%', left: '28%', width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: 'rgba(80,140,60,0.15)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '40deg' }] }} />
+          {/* Tea powder dots */}
+          {[{ t: 50, l: 18, s: 5 }, { t: 55, l: 38, s: 3 }, { t: 58, l: 62, s: 4 }, { t: 52, l: 76, s: 3 }, { t: 60, l: 28, s: 4 }, { t: 57, l: 52, s: 3 }, { t: 53, l: 72, s: 5 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, borderRadius: p.s / 2, backgroundColor: 'rgba(70,130,50,0.22)' }} />
           ))}
-          <View style={{ position: 'absolute', top: '58%', left: '30%', width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: 'rgba(90,150,70,0.15)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '-30deg' }] }} />
-          <View style={{ position: 'absolute', top: '62%', left: '38%', width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(90,150,70,0.12)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '60deg' }] }} />
-          <View style={{ position: 'absolute', top: '20%', right: '18%', width: 16, height: 10, borderRadius: 8, backgroundColor: 'rgba(100,160,80,0.18)', transform: [{ rotate: '-35deg' }] }}>
-            <View style={{ position: 'absolute', top: 4.5, left: 2, right: 2, height: 1, backgroundColor: 'rgba(80,130,60,0.15)', borderRadius: 1 }} />
+          {/* Leaf */}
+          <View style={{ position: 'absolute', top: '18%', right: '18%', width: 18, height: 11, borderRadius: 9, backgroundColor: 'rgba(80,150,60,0.22)', transform: [{ rotate: '-30deg' }] }}>
+            <View style={{ position: 'absolute', top: 5, left: 2, right: 2, height: 1, backgroundColor: 'rgba(60,120,40,0.18)', borderRadius: 1 }} />
           </View>
         </View>
       );
     case 'sakura':
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <View style={{ position: 'absolute', bottom: '8%', left: '5%', width: '50%', height: 20, backgroundColor: 'rgba(140,180,120,0.18)', borderTopLeftRadius: 20, borderTopRightRadius: 40, borderBottomRightRadius: 10, transform: [{ rotate: '-8deg' }] }}>
-            <View style={{ position: 'absolute', top: 9, left: 8, right: 8, height: 1.5, backgroundColor: 'rgba(120,160,100,0.15)', borderRadius: 1 }} />
-          </View>
-          {[{ t: 25, l: 20, r: '-15deg', s: 1 }, { t: 35, l: 60, r: '30deg', s: 0.8 }, { t: 55, l: 15, r: '-40deg', s: 0.7 }, { t: 48, l: 65, r: '20deg', s: 0.9 }, { t: 68, l: 40, r: '-25deg', s: 0.6 }].map((p, i) => (
+          {/* Petals */}
+          {[{ t: 22, l: 18, r: '-15deg', s: 1.1 }, { t: 32, l: 62, r: '30deg', s: 0.9 }, { t: 52, l: 12, r: '-40deg', s: 0.8 }, { t: 45, l: 68, r: '20deg', s: 1.0 }, { t: 65, l: 38, r: '-25deg', s: 0.7 }, { t: 60, l: 78, r: '10deg', s: 0.6 }].map((p, i) => (
             <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, transform: [{ rotate: p.r }, { scale: p.s }] }}>
               {[0, 72, 144, 216, 288].map((deg, j) => (
-                <View key={j} style={{ position: 'absolute', width: 6, height: 8, borderRadius: 3, backgroundColor: `rgba(240,150,170,${0.2 - i * 0.02})`, transform: [{ rotate: `${deg}deg` }, { translateY: -4 }], transformOrigin: '3px 8px' }} />
+                <View key={j} style={{ position: 'absolute', width: 7, height: 9, borderRadius: 4, backgroundColor: `rgba(240,140,170,${0.25 - i * 0.02})`, transform: [{ rotate: `${deg}deg` }, { translateY: -5 }], transformOrigin: '3.5px 9px' as any }} />
               ))}
-              <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(240,200,100,0.25)' }} />
+              <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(240,200,80,0.3)' }} />
             </View>
           ))}
+          {/* Leaf */}
+          <View style={{ position: 'absolute', bottom: '10%', left: '8%', width: '45%', height: 18, backgroundColor: 'rgba(130,180,110,0.2)', borderTopLeftRadius: 18, borderTopRightRadius: 36, borderBottomRightRadius: 8, transform: [{ rotate: '-6deg' }] }} />
         </View>
       );
-    case 'yomogi':
+    case 'ichigo':
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {[{ t: 30, l: 15, r: '-20deg' }, { t: 45, l: 65, r: '15deg' }, { t: 60, l: 30, r: '-35deg' }, { t: 70, l: 55, r: '25deg' }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, transform: [{ rotate: p.r }] }}>
-              <View style={{ width: 12, height: 7, borderRadius: 6, backgroundColor: 'rgba(90,140,70,0.18)' }}>
-                <View style={{ position: 'absolute', top: 3, left: 2, right: 2, height: 1, backgroundColor: 'rgba(70,120,50,0.12)', borderRadius: 1 }} />
-              </View>
-              <View style={{ width: 8, height: 5, borderRadius: 4, backgroundColor: 'rgba(90,140,70,0.14)', marginTop: -2, marginLeft: 2, transform: [{ rotate: '30deg' }] }} />
-            </View>
+          {/* Seeds */}
+          {[{ t: 32, l: 22 }, { t: 28, l: 55 }, { t: 45, l: 68 }, { t: 52, l: 32 }, { t: 40, l: 48 }, { t: 62, l: 20 }, { t: 58, l: 62 }, { t: 70, l: 42 }, { t: 35, l: 78 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 4, height: 6, borderRadius: 2, backgroundColor: 'rgba(160,40,55,0.38)', transform: [{ rotate: `${i * 22}deg` }] }} />
           ))}
-          {[{ t: 35, l: 40, s: 4 }, { t: 42, l: 22, s: 3 }, { t: 50, l: 55, s: 5 }, { t: 55, l: 75, s: 3 }, { t: 65, l: 18, s: 4 }, { t: 48, l: 80, s: 3 }, { t: 72, l: 42, s: 4 }, { t: 38, l: 70, s: 3 }].map((p, i) => (
-            <View key={`s${i}`} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, borderRadius: p.s / 2, backgroundColor: `rgba(80,130,60,${0.12 + (i % 3) * 0.04})` }} />
+          {/* Leaf cluster on top */}
+          <View style={{ position: 'absolute', top: '4%', left: '32%', width: 16, height: 9, borderRadius: 8, backgroundColor: 'rgba(50,140,55,0.55)', transform: [{ rotate: '-35deg' }] }} />
+          <View style={{ position: 'absolute', top: '2%', left: '45%', width: 14, height: 8, borderRadius: 7, backgroundColor: 'rgba(60,150,60,0.55)', transform: [{ rotate: '5deg' }] }} />
+          <View style={{ position: 'absolute', top: '5%', left: '58%', width: 12, height: 7, borderRadius: 6, backgroundColor: 'rgba(50,135,50,0.5)', transform: [{ rotate: '40deg' }] }} />
+          {/* Shine */}
+          <View style={{ position: 'absolute', top: '20%', left: '18%', width: 18, height: 10, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.22)', transform: [{ rotate: '-20deg' }] }} />
+        </View>
+      );
+    case 'kogeme':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Burnt top zone */}
+          <View style={{ position: 'absolute', top: 0, left: '8%', right: '8%', height: '32%', backgroundColor: 'rgba(150,90,10,0.2)', borderBottomLeftRadius: 50, borderBottomRightRadius: 50 }} />
+          {/* Caramel spots */}
+          {[{ t: 6, l: 22, w: 16, h: 8 }, { t: 10, l: 55, w: 12, h: 7 }, { t: 4, l: 40, w: 9, h: 6 }, { t: 16, l: 70, w: 14, h: 8 }, { t: 14, l: 12, w: 10, h: 6 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.w, height: p.h, borderRadius: p.h / 2, backgroundColor: `rgba(155,85,8,${0.22 + (i % 3) * 0.06})` }} />
           ))}
+          {/* Caramel drips */}
+          <View style={{ position: 'absolute', top: '26%', left: '28%', width: 4, height: 20, borderRadius: 2, backgroundColor: 'rgba(170,100,15,0.28)' }}>
+            <View style={{ position: 'absolute', bottom: -4, left: -3, width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(170,100,15,0.22)' }} />
+          </View>
+          <View style={{ position: 'absolute', top: '22%', left: '62%', width: 3, height: 14, borderRadius: 2, backgroundColor: 'rgba(170,100,15,0.22)' }}>
+            <View style={{ position: 'absolute', bottom: -3, left: -3, width: 9, height: 9, borderRadius: 4.5, backgroundColor: 'rgba(170,100,15,0.18)' }} />
+          </View>
         </View>
       );
     case 'anko':
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <View style={{ position: 'absolute', top: '38%', left: '5%', right: '5%', height: 30, overflow: 'hidden' }}>
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, backgroundColor: 'rgba(120,60,40,0.22)', borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }} />
-            <View style={{ position: 'absolute', top: 12, left: '12%', width: 10, height: 14, backgroundColor: 'rgba(120,60,40,0.2)', borderBottomLeftRadius: 5, borderBottomRightRadius: 5 }} />
-            <View style={{ position: 'absolute', top: 14, left: '40%', width: 7, height: 10, backgroundColor: 'rgba(120,60,40,0.18)', borderBottomLeftRadius: 4, borderBottomRightRadius: 4 }} />
-            <View style={{ position: 'absolute', top: 10, left: '65%', width: 12, height: 16, backgroundColor: 'rgba(120,60,40,0.2)', borderBottomLeftRadius: 6, borderBottomRightRadius: 6 }} />
-            <View style={{ position: 'absolute', top: 13, left: '85%', width: 8, height: 8, backgroundColor: 'rgba(120,60,40,0.16)', borderBottomLeftRadius: 4, borderBottomRightRadius: 4 }} />
+          {/* Anko filling seam */}
+          <View style={{ position: 'absolute', top: '40%', left: '5%', right: '5%', height: 3, backgroundColor: 'rgba(70,25,15,0.32)', borderRadius: 2 }} />
+          {/* Sauce drips */}
+          <View style={{ position: 'absolute', top: '36%', left: '18%', width: 6, height: 24, borderRadius: 3, backgroundColor: 'rgba(70,25,15,0.3)' }}>
+            <View style={{ position: 'absolute', bottom: -5, left: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(70,25,15,0.24)' }} />
           </View>
-          {[{ t: 60, l: 20 }, { t: 65, l: 50 }, { t: 62, l: 72 }, { t: 70, l: 35 }, { t: 68, l: 62 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 6, height: 5, borderRadius: 3, backgroundColor: 'rgba(140,70,50,0.18)', transform: [{ rotate: `${i * 30}deg` }] }} />
+          <View style={{ position: 'absolute', top: '34%', left: '52%', width: 5, height: 18, borderRadius: 2.5, backgroundColor: 'rgba(70,25,15,0.26)' }}>
+            <View style={{ position: 'absolute', bottom: -4, left: -3, width: 11, height: 11, borderRadius: 5.5, backgroundColor: 'rgba(70,25,15,0.2)' }} />
+          </View>
+          <View style={{ position: 'absolute', top: '38%', left: '72%', width: 4, height: 14, borderRadius: 2, backgroundColor: 'rgba(70,25,15,0.24)' }}>
+            <View style={{ position: 'absolute', bottom: -3, left: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(70,25,15,0.18)' }} />
+          </View>
+          {/* Anko texture */}
+          {[{ t: 54, l: 22 }, { t: 60, l: 44 }, { t: 56, l: 66 }, { t: 65, l: 30 }, { t: 63, l: 58 }, { t: 70, l: 42 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 6, height: 5, borderRadius: 3, backgroundColor: 'rgba(70,25,15,0.22)' }} />
           ))}
-          <View style={{ position: 'absolute', top: '40%', left: '25%', width: 20, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.12)' }} />
+          {/* Highlight */}
+          <View style={{ position: 'absolute', top: '42%', left: '22%', width: 22, height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.14)' }} />
+        </View>
+      );
+    case 'sumi':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Crack lines */}
+          <View style={{ position: 'absolute', top: '18%', left: '15%', width: 38, height: 1.5, backgroundColor: 'rgba(210,190,180,0.22)', transform: [{ rotate: '12deg' }] }} />
+          <View style={{ position: 'absolute', top: '26%', left: '52%', width: 22, height: 1, backgroundColor: 'rgba(210,190,180,0.18)', transform: [{ rotate: '-28deg' }] }} />
+          <View style={{ position: 'absolute', top: '55%', left: '20%', width: 16, height: 1, backgroundColor: 'rgba(210,190,180,0.15)', transform: [{ rotate: '8deg' }] }} />
+          {/* Ember glow */}
+          {[{ t: 58, l: 18 }, { t: 66, l: 52 }, { t: 62, l: 72 }, { t: 72, l: 33 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(220,90,30,0.35)' }} />
+          ))}
+          {/* Ash specks */}
+          {[{ t: 28, l: 32 }, { t: 42, l: 68 }, { t: 52, l: 24 }, { t: 38, l: 76 }, { t: 63, l: 48 }, { t: 33, l: 52 }, { t: 48, l: 40 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 3, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(225,215,205,0.22)' }} />
+          ))}
         </View>
       );
     case 'yuzu':
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <View style={{ position: 'absolute', top: '50%', left: '25%', width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: 'rgba(220,180,60,0.2)', backgroundColor: 'rgba(255,240,150,0.08)', justifyContent: 'center', alignItems: 'center' }}>
+          {/* Citrus slice */}
+          <View style={{ position: 'absolute', top: '48%', left: '22%', width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: 'rgba(210,170,30,0.25)', backgroundColor: 'rgba(255,235,100,0.1)', justifyContent: 'center', alignItems: 'center' }}>
             {[0, 45, 90, 135].map((deg, i) => (
-              <View key={i} style={{ position: 'absolute', width: 18, height: 1.5, backgroundColor: 'rgba(220,180,60,0.15)', borderRadius: 1, transform: [{ rotate: `${deg}deg` }] }} />
+              <View key={i} style={{ position: 'absolute', width: 20, height: 1.5, backgroundColor: 'rgba(210,170,30,0.2)', borderRadius: 1, transform: [{ rotate: `${deg}deg` }] }} />
             ))}
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(240,200,60,0.15)' }} />
+            <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: 'rgba(240,200,40,0.2)' }} />
           </View>
-          <View style={{ position: 'absolute', top: '60%', right: '20%', width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(220,180,60,0.15)', justifyContent: 'center', alignItems: 'center' }}>
-            <View style={{ width: 8, height: 1, backgroundColor: 'rgba(220,180,60,0.12)', position: 'absolute' }} />
-            <View style={{ width: 1, height: 8, backgroundColor: 'rgba(220,180,60,0.12)', position: 'absolute' }} />
+          {/* Small citrus */}
+          <View style={{ position: 'absolute', top: '62%', right: '18%', width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: 'rgba(210,170,30,0.2)', justifyContent: 'center', alignItems: 'center' }}>
+            {[0, 90].map((deg, i) => (
+              <View key={i} style={{ position: 'absolute', width: 10, height: 1, backgroundColor: 'rgba(210,170,30,0.16)', transform: [{ rotate: `${deg}deg` }] }} />
+            ))}
           </View>
-          <View style={{ position: 'absolute', top: '28%', right: '22%', width: 14, height: 9, borderRadius: 7, backgroundColor: 'rgba(100,160,70,0.18)', transform: [{ rotate: '25deg' }] }}>
-            <View style={{ position: 'absolute', top: 4, left: 2, right: 2, height: 1, backgroundColor: 'rgba(80,130,50,0.12)', borderRadius: 1 }} />
-          </View>
-          {[{ t: 35, l: 18 }, { t: 42, l: 55 }, { t: 70, l: 30 }, { t: 45, l: 78 }, { t: 75, l: 60 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 3, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(240,200,60,0.2)' }} />
+          {/* Zest dots */}
+          {[{ t: 32, l: 18 }, { t: 40, l: 58 }, { t: 68, l: 28 }, { t: 44, l: 78 }, { t: 73, l: 62 }, { t: 28, l: 68 }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(240,200,30,0.25)' }} />
           ))}
+          {/* Leaf */}
+          <View style={{ position: 'absolute', top: '26%', right: '20%', width: 16, height: 10, borderRadius: 8, backgroundColor: 'rgba(90,160,60,0.22)', transform: [{ rotate: '22deg' }] }}>
+            <View style={{ position: 'absolute', top: 4.5, left: 2, right: 2, height: 1, backgroundColor: 'rgba(70,130,45,0.18)', borderRadius: 1 }} />
+          </View>
         </View>
       );
     default:
