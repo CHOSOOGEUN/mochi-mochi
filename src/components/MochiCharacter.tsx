@@ -1,24 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-// ─── Skin-specific patterns ───
+// ─── Interior patterns (inside overflow:hidden body) ───
 export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boolean }) => {
   if (isDead) return null;
   switch (skinId) {
     case 'classic':
       return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Pink bow - left wing */}
-          <View style={{ position: 'absolute', top: '-32%', left: '6%', width: 28, height: 19, borderRadius: 14, backgroundColor: '#E06882', transform: [{ rotate: '-28deg' }] }} />
-          <View style={{ position: 'absolute', top: '-35%', left: '11%', width: 19, height: 13, borderRadius: 9, backgroundColor: '#F090A8', transform: [{ rotate: '-28deg' }] }} />
-          {/* Right wing */}
-          <View style={{ position: 'absolute', top: '-32%', right: '6%', width: 28, height: 19, borderRadius: 14, backgroundColor: '#E06882', transform: [{ rotate: '28deg' }] }} />
-          <View style={{ position: 'absolute', top: '-35%', right: '11%', width: 19, height: 13, borderRadius: 9, backgroundColor: '#F090A8', transform: [{ rotate: '28deg' }] }} />
-          {/* Bow center knot */}
-          <View style={{ position: 'absolute', top: '-22%', left: '41%', width: 16, height: 16, borderRadius: 8, backgroundColor: '#C85070' }} />
-          {/* Bow tails */}
-          <View style={{ position: 'absolute', top: '-12%', left: '34%', width: 10, height: 17, borderRadius: 5, backgroundColor: '#E06882', transform: [{ rotate: '-22deg' }] }} />
-          <View style={{ position: 'absolute', top: '-12%', right: '34%', width: 10, height: 17, borderRadius: 5, backgroundColor: '#E06882', transform: [{ rotate: '22deg' }] }} />
           {/* Shine */}
           <View style={{ position: 'absolute', top: '14%', left: '10%', width: 24, height: 14, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.3)', transform: [{ rotate: '-18deg' }] }} />
         </View>
@@ -35,15 +24,6 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
           {[{ t: 62, l: 16, s: 8 }, { t: 66, l: 38, s: 6 }, { t: 70, l: 60, s: 7 }, { t: 74, l: 28, s: 5 }, { t: 72, l: 72, s: 6 }].map((p, i) => (
             <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, borderRadius: p.s / 2, backgroundColor: 'rgba(40,110,30,0.38)' }} />
           ))}
-          {/* Bamboo leaves sticking out */}
-          <View style={{ position: 'absolute', top: '-34%', left: '18%', width: 15, height: 34, borderRadius: 7, backgroundColor: '#2E9038', transform: [{ rotate: '-38deg' }] }}>
-            <View style={{ position: 'absolute', top: 8, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.55)', borderRadius: 1 }} />
-            <View style={{ position: 'absolute', top: 18, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.45)', borderRadius: 1 }} />
-          </View>
-          <View style={{ position: 'absolute', top: '-38%', right: '18%', width: 13, height: 30, borderRadius: 6, backgroundColor: '#3AAA42', transform: [{ rotate: '32deg' }] }}>
-            <View style={{ position: 'absolute', top: 7, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.5)', borderRadius: 1 }} />
-            <View style={{ position: 'absolute', top: 16, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.4)', borderRadius: 1 }} />
-          </View>
         </View>
       );
     case 'sakura':
@@ -60,15 +40,6 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
               <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: `rgba(255,205,65,${p.op + 0.15})` }} />
             </View>
           ))}
-          {/* Big cherry blossom above top-right */}
-          <View style={{ position: 'absolute', top: '-46%', right: '2%', transform: [{ rotate: '18deg' }] }}>
-            {[0, 72, 144, 216, 288].map((deg, j) => (
-              <View key={j} style={{ position: 'absolute', width: 15, height: 20, borderRadius: 7, backgroundColor: 'rgba(245,125,162,0.92)', transform: [{ rotate: `${deg}deg` }, { translateY: -13 }], transformOrigin: '7.5px 20px' as any }} />
-            ))}
-            <View style={{ width: 9, height: 9, borderRadius: 4.5, backgroundColor: 'rgba(255,215,55,0.98)' }} />
-          </View>
-          {/* Falling petal left */}
-          <View style={{ position: 'absolute', top: '-22%', left: '12%', width: 11, height: 14, borderRadius: 5, backgroundColor: 'rgba(245,128,163,0.75)', transform: [{ rotate: '35deg' }] }} />
           {/* Leaf */}
           <View style={{ position: 'absolute', bottom: '6%', left: '5%', width: '40%', height: 15, backgroundColor: 'rgba(105,168,85,0.38)', borderTopLeftRadius: 14, borderTopRightRadius: 30, borderBottomRightRadius: 7, transform: [{ rotate: '-6deg' }] }} />
         </View>
@@ -84,12 +55,6 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
           ))}
           {/* Shine */}
           <View style={{ position: 'absolute', top: '15%', left: '13%', width: 24, height: 15, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.42)', transform: [{ rotate: '-20deg' }] }} />
-          {/* Strawberry calyx - 5 pointed leaves */}
-          {[{ r: '-58deg', l: '14%', t: '-40%' }, { r: '-28deg', l: '28%', t: '-46%' }, { r: '0deg', l: '42%', t: '-49%' }, { r: '28deg', l: '56%', t: '-46%' }, { r: '56deg', l: '68%', t: '-40%' }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: p.t as any, left: p.l as any, width: 12, height: 28, borderRadius: 6, backgroundColor: '#1E8C38', transform: [{ rotate: p.r }] }}>
-              <View style={{ position: 'absolute', top: 7, left: 2, right: 2, height: 2, backgroundColor: 'rgba(10,60,20,0.55)', borderRadius: 1 }} />
-            </View>
-          ))}
         </View>
       );
     case 'kogeme':
@@ -108,13 +73,6 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
           <View style={{ position: 'absolute', top: '26%', left: '58%', width: 6, height: 22, borderRadius: 3, backgroundColor: 'rgba(152,84,6,0.42)' }}>
             <View style={{ position: 'absolute', bottom: -6, left: -4, width: 14, height: 14, borderRadius: 7, backgroundColor: 'rgba(152,84,6,0.34)' }} />
           </View>
-          {/* Tall flames */}
-          <View style={{ position: 'absolute', top: '-46%', left: '20%', width: 15, height: 42, borderBottomLeftRadius: 7, borderBottomRightRadius: 7, borderTopLeftRadius: 15, borderTopRightRadius: 15, backgroundColor: '#FF6C08', transform: [{ rotate: '-12deg' }] }} />
-          <View style={{ position: 'absolute', top: '-55%', left: '37%', width: 13, height: 50, borderBottomLeftRadius: 6, borderBottomRightRadius: 6, borderTopLeftRadius: 13, borderTopRightRadius: 13, backgroundColor: '#FFAA08', transform: [{ rotate: '4deg' }] }} />
-          <View style={{ position: 'absolute', top: '-48%', left: '55%', width: 14, height: 44, borderBottomLeftRadius: 7, borderBottomRightRadius: 7, borderTopLeftRadius: 14, borderTopRightRadius: 14, backgroundColor: '#FF7A10', transform: [{ rotate: '16deg' }] }} />
-          {/* Bright inner flame */}
-          <View style={{ position: 'absolute', top: '-42%', left: '28%', width: 11, height: 32, borderRadius: 5.5, backgroundColor: 'rgba(255,225,45,0.65)', transform: [{ rotate: '-8deg' }] }} />
-          <View style={{ position: 'absolute', top: '-48%', left: '44%', width: 9, height: 36, borderRadius: 4.5, backgroundColor: 'rgba(255,225,45,0.6)', transform: [{ rotate: '5deg' }] }} />
         </View>
       );
     case 'anko':
@@ -140,10 +98,6 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
           ))}
           {/* Drip highlight */}
           <View style={{ position: 'absolute', top: '37%', left: '13%', width: 4, height: 22, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.24)' }} />
-          {/* Sesame seeds on top */}
-          {[{ t: '-10%', l: '24%', r: '-15deg' }, { t: '-13%', l: '42%', r: '5deg' }, { t: '-10%', l: '59%', r: '20deg' }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: p.t as any, left: p.l as any, width: 7, height: 10, borderRadius: 3.5, backgroundColor: '#C0A828', transform: [{ rotate: p.r }] }} />
-          ))}
         </View>
       );
     case 'sumi':
@@ -163,10 +117,6 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
           {[{ t: 23, l: 26 }, { t: 37, l: 62 }, { t: 47, l: 18 }, { t: 33, l: 72 }, { t: 59, l: 42 }, { t: 29, l: 46 }].map((p, i) => (
             <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(228,213,202,0.44)' }} />
           ))}
-          {/* Smoke wisps - tall */}
-          <View style={{ position: 'absolute', top: '-42%', left: '18%', width: 11, height: 40, borderRadius: 5.5, backgroundColor: 'rgba(155,150,145,0.52)', transform: [{ rotate: '-16deg' }] }} />
-          <View style={{ position: 'absolute', top: '-50%', left: '38%', width: 9, height: 48, borderRadius: 4.5, backgroundColor: 'rgba(155,150,145,0.48)', transform: [{ rotate: '9deg' }] }} />
-          <View style={{ position: 'absolute', top: '-42%', left: '57%', width: 8, height: 36, borderRadius: 4, backgroundColor: 'rgba(155,150,145,0.43)', transform: [{ rotate: '26deg' }] }} />
           {/* Ember peek at top */}
           <View style={{ position: 'absolute', top: '-8%', left: '32%', width: 22, height: 12, borderRadius: 11, backgroundColor: 'rgba(245,75,14,0.34)', transform: [{ rotate: '-5deg' }] }} />
         </View>
@@ -191,6 +141,105 @@ export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boole
           {[{ t: 26, l: 12 }, { t: 34, l: 55 }, { t: 62, l: 20 }, { t: 40, l: 74 }, { t: 70, l: 56 }, { t: 23, l: 64 }].map((p, i) => (
             <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(208,168,12,0.45)' }} />
           ))}
+        </View>
+      );
+    default:
+      return null;
+  }
+};
+
+// ─── Overflow decorations (rendered OUTSIDE overflow:hidden body) ───
+export const MochiDecoration = ({ skinId, isDead }: { skinId: string; isDead: boolean }) => {
+  if (isDead) return null;
+  switch (skinId) {
+    case 'classic':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Pink bow - left wing */}
+          <View style={{ position: 'absolute', top: '-32%', left: '6%', width: 28, height: 19, borderRadius: 14, backgroundColor: '#E06882', transform: [{ rotate: '-28deg' }] }} />
+          <View style={{ position: 'absolute', top: '-35%', left: '11%', width: 19, height: 13, borderRadius: 9, backgroundColor: '#F090A8', transform: [{ rotate: '-28deg' }] }} />
+          {/* Right wing */}
+          <View style={{ position: 'absolute', top: '-32%', right: '6%', width: 28, height: 19, borderRadius: 14, backgroundColor: '#E06882', transform: [{ rotate: '28deg' }] }} />
+          <View style={{ position: 'absolute', top: '-35%', right: '11%', width: 19, height: 13, borderRadius: 9, backgroundColor: '#F090A8', transform: [{ rotate: '28deg' }] }} />
+          {/* Bow center knot */}
+          <View style={{ position: 'absolute', top: '-22%', left: '41%', width: 16, height: 16, borderRadius: 8, backgroundColor: '#C85070' }} />
+          {/* Bow tails */}
+          <View style={{ position: 'absolute', top: '-12%', left: '34%', width: 10, height: 17, borderRadius: 5, backgroundColor: '#E06882', transform: [{ rotate: '-22deg' }] }} />
+          <View style={{ position: 'absolute', top: '-12%', right: '34%', width: 10, height: 17, borderRadius: 5, backgroundColor: '#E06882', transform: [{ rotate: '22deg' }] }} />
+        </View>
+      );
+    case 'matcha':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Bamboo leaves sticking out */}
+          <View style={{ position: 'absolute', top: '-34%', left: '18%', width: 15, height: 34, borderRadius: 7, backgroundColor: '#2E9038', transform: [{ rotate: '-38deg' }] }}>
+            <View style={{ position: 'absolute', top: 8, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.55)', borderRadius: 1 }} />
+            <View style={{ position: 'absolute', top: 18, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.45)', borderRadius: 1 }} />
+          </View>
+          <View style={{ position: 'absolute', top: '-38%', right: '18%', width: 13, height: 30, borderRadius: 6, backgroundColor: '#3AAA42', transform: [{ rotate: '32deg' }] }}>
+            <View style={{ position: 'absolute', top: 7, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.5)', borderRadius: 1 }} />
+            <View style={{ position: 'absolute', top: 16, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.4)', borderRadius: 1 }} />
+          </View>
+        </View>
+      );
+    case 'sakura':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Big cherry blossom above top-right */}
+          <View style={{ position: 'absolute', top: '-46%', right: '2%', transform: [{ rotate: '18deg' }] }}>
+            {[0, 72, 144, 216, 288].map((deg, j) => (
+              <View key={j} style={{ position: 'absolute', width: 15, height: 20, borderRadius: 7, backgroundColor: 'rgba(245,125,162,0.92)', transform: [{ rotate: `${deg}deg` }, { translateY: -13 }], transformOrigin: '7.5px 20px' as any }} />
+            ))}
+            <View style={{ width: 9, height: 9, borderRadius: 4.5, backgroundColor: 'rgba(255,215,55,0.98)' }} />
+          </View>
+          {/* Falling petal left */}
+          <View style={{ position: 'absolute', top: '-22%', left: '12%', width: 11, height: 14, borderRadius: 5, backgroundColor: 'rgba(245,128,163,0.75)', transform: [{ rotate: '35deg' }] }} />
+        </View>
+      );
+    case 'ichigo':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Strawberry calyx - 5 pointed leaves */}
+          {[{ r: '-58deg', l: '14%', t: '-40%' }, { r: '-28deg', l: '28%', t: '-46%' }, { r: '0deg', l: '42%', t: '-49%' }, { r: '28deg', l: '56%', t: '-46%' }, { r: '56deg', l: '68%', t: '-40%' }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: p.t as any, left: p.l as any, width: 12, height: 28, borderRadius: 6, backgroundColor: '#1E8C38', transform: [{ rotate: p.r }] }}>
+              <View style={{ position: 'absolute', top: 7, left: 2, right: 2, height: 2, backgroundColor: 'rgba(10,60,20,0.55)', borderRadius: 1 }} />
+            </View>
+          ))}
+        </View>
+      );
+    case 'kogeme':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Tall flames */}
+          <View style={{ position: 'absolute', top: '-46%', left: '20%', width: 15, height: 42, borderBottomLeftRadius: 7, borderBottomRightRadius: 7, borderTopLeftRadius: 15, borderTopRightRadius: 15, backgroundColor: '#FF6C08', transform: [{ rotate: '-12deg' }] }} />
+          <View style={{ position: 'absolute', top: '-55%', left: '37%', width: 13, height: 50, borderBottomLeftRadius: 6, borderBottomRightRadius: 6, borderTopLeftRadius: 13, borderTopRightRadius: 13, backgroundColor: '#FFAA08', transform: [{ rotate: '4deg' }] }} />
+          <View style={{ position: 'absolute', top: '-48%', left: '55%', width: 14, height: 44, borderBottomLeftRadius: 7, borderBottomRightRadius: 7, borderTopLeftRadius: 14, borderTopRightRadius: 14, backgroundColor: '#FF7A10', transform: [{ rotate: '16deg' }] }} />
+          {/* Bright inner flame */}
+          <View style={{ position: 'absolute', top: '-42%', left: '28%', width: 11, height: 32, borderRadius: 5.5, backgroundColor: 'rgba(255,225,45,0.65)', transform: [{ rotate: '-8deg' }] }} />
+          <View style={{ position: 'absolute', top: '-48%', left: '44%', width: 9, height: 36, borderRadius: 4.5, backgroundColor: 'rgba(255,225,45,0.6)', transform: [{ rotate: '5deg' }] }} />
+        </View>
+      );
+    case 'anko':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Sesame seeds on top */}
+          {[{ t: '-10%', l: '24%', r: '-15deg' }, { t: '-13%', l: '42%', r: '5deg' }, { t: '-10%', l: '59%', r: '20deg' }].map((p, i) => (
+            <View key={i} style={{ position: 'absolute', top: p.t as any, left: p.l as any, width: 7, height: 10, borderRadius: 3.5, backgroundColor: '#C0A828', transform: [{ rotate: p.r }] }} />
+          ))}
+        </View>
+      );
+    case 'sumi':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Smoke wisps - tall */}
+          <View style={{ position: 'absolute', top: '-42%', left: '18%', width: 11, height: 40, borderRadius: 5.5, backgroundColor: 'rgba(155,150,145,0.52)', transform: [{ rotate: '-16deg' }] }} />
+          <View style={{ position: 'absolute', top: '-50%', left: '38%', width: 9, height: 48, borderRadius: 4.5, backgroundColor: 'rgba(155,150,145,0.48)', transform: [{ rotate: '9deg' }] }} />
+          <View style={{ position: 'absolute', top: '-42%', left: '57%', width: 8, height: 36, borderRadius: 4, backgroundColor: 'rgba(155,150,145,0.43)', transform: [{ rotate: '26deg' }] }} />
+        </View>
+      );
+    case 'yuzu':
+      return (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {/* Big leaf sticking out */}
           <View style={{ position: 'absolute', top: '-44%', right: '5%', width: 24, height: 42, borderRadius: 12, backgroundColor: '#30A840', transform: [{ rotate: '34deg' }] }}>
             <View style={{ position: 'absolute', top: 9, left: 3, right: 3, height: 2, backgroundColor: 'rgba(15,75,22,0.55)', borderRadius: 1 }} />

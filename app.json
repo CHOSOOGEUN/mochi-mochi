@@ -13,7 +13,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.josoogen.mochi-mochi"
+      "bundleIdentifier": "com.josoogen.mochi-mochi",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This app uses tracking data to show you personalized ads and improve your experience."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -36,7 +40,8 @@
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ],
-      "react-native-iap"
+      "react-native-iap",
+      "expo-tracking-transparency"
     ],
     "react-native-google-mobile-ads": {
       "android_app_id": "ca-app-pub-3940256099942544~3347511713",

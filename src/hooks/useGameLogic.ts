@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   AdEventType,
   RewardedAdEventType,
+  InterstitialAd,
+  RewardedAd,
 } from 'react-native-google-mobile-ads';
 import {
   initConnection,
@@ -20,7 +22,7 @@ import {
   TARGETS, TARGET_TYPES, BG_COLORS, BANNER_HIDE_Y,
   IAP_SKUS, IAP_BUNDLES, SKINS, DEFAULT_INVENTORY,
 } from '../constants';
-import { interstitial, rewarded } from '../ads';
+import { interstitialAdUnitId, rewardedAdUnitId, initializeAds } from '../ads';
 import type { Direction, TargetType, Inventory, GameItem, MochiSkin, GameScreenState } from '../types';
 import { t, LANG_CYCLE, type Lang } from '../i18n';
 
@@ -49,6 +51,8 @@ export function useGameLogic() {
   const [adContinueCount, setAdContinueCount] = useState(0);
 
   // ─── Ad state ───
+  const [interstitial, setInterstitial] = useState<InterstitialAd | null>(null);
+  const [rewarded, setRewarded] = useState<RewardedAd | null>(null);
   const [interstitialLoaded, setInterstitialLoaded] = useState(false);
   const [rewardedLoaded, setRewardedLoaded] = useState(false);
   const [deathCount, setDeathCount] = useState(0);
@@ -171,20 +175,31 @@ export function useGameLogic() {
   useEffect(() => {
     AsyncStorage.getItem('deathCount').then(val => { if (val) setDeathCount(parseInt(val, 10)); });
 
-    const unsubILoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => setInterstitialLoaded(true));
-    const unsubIClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => { setInterstitialLoaded(false); interstitial.load(); });
-    interstitial.load();
+    let iAd: InterstitialAd;
+    let rAd: RewardedAd;
+    let unsubI: any[] = [];
+    let unsubR: any[] = [];
 
-    const unsubRLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => setRewardedLoaded(true));
-    const unsubREarned = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, reward => {
-      console.log('User earned reward:', reward);
+    initializeAds().then((nonPersonalized) => {
+      iAd = InterstitialAd.createForAdRequest(interstitialAdUnitId, { requestNonPersonalizedAdsOnly: nonPersonalized });
+      rAd = RewardedAd.createForAdRequest(rewardedAdUnitId, { requestNonPersonalizedAdsOnly: nonPersonalized });
+
+      unsubI.push(iAd.addAdEventListener(AdEventType.LOADED, () => setInterstitialLoaded(true)));
+      unsubI.push(iAd.addAdEventListener(AdEventType.CLOSED, () => { setInterstitialLoaded(false); iAd.load(); }));
+      iAd.load();
+
+      unsubR.push(rAd.addAdEventListener(RewardedAdEventType.LOADED, () => setRewardedLoaded(true)));
+      unsubR.push(rAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, reward => console.log('User earned reward:', reward)));
+      unsubR.push(rAd.addAdEventListener(AdEventType.CLOSED, () => { setRewardedLoaded(false); rAd.load(); }));
+      rAd.load();
+
+      setInterstitial(iAd);
+      setRewarded(rAd);
     });
-    const unsubRClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => { setRewardedLoaded(false); rewarded.load(); });
-    rewarded.load();
 
     return () => {
-      unsubILoaded(); unsubIClosed();
-      unsubRLoaded(); unsubREarned(); unsubRClosed();
+      unsubI.forEach(u => u());
+      unsubR.forEach(u => u());
     };
   }, []);
 
@@ -527,7 +542,7 @@ export function useGameLogic() {
             setTimeout(() => {
               if (pendingInterstitialRef.current) {
                 pendingInterstitialRef.current = false;
-                interstitial.show();
+                interstitial?.show();
               }
             }, 800);
           }
@@ -721,11 +736,11 @@ export function useGameLogic() {
   const continueFromAd = () => {
     if (adsRemoved) { executeContinue(); return; }
     if (rewardedLoaded) {
-      const unsubscribeClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
-        unsubscribeClosed();
+      const unsubscribeClosed = rewarded?.addAdEventListener(AdEventType.CLOSED, () => {
+        if (unsubscribeClosed) unsubscribeClosed();
         executeContinue();
       });
-      rewarded.show();
+      rewarded?.show();
     } else {
       executeContinue();
     }
@@ -734,8 +749,8 @@ export function useGameLogic() {
   const multiplyCoinsFromAd = () => {
     if (rewardedLoaded && !adMultiplierUsed && earnedCoins > 0) {
       pendingInterstitialRef.current = false;
-      const unsubscribeClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
-        unsubscribeClosed();
+      const unsubscribeClosed = rewarded?.addAdEventListener(AdEventType.CLOSED, () => {
+        if (unsubscribeClosed) unsubscribeClosed();
         const bonusCoins = earnedCoins * 2;
         setCoins(prev => {
           const newTotal = prev + bonusCoins;
@@ -745,9 +760,9 @@ export function useGameLogic() {
         setEarnedCoins(earnedCoins * 3);
         setAdMultiplierUsed(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        if (interstitialLoaded) setTimeout(() => interstitial.show(), 300);
+        if (interstitialLoaded) setTimeout(() => interstitial?.show(), 300);
       });
-      rewarded.show();
+      rewarded?.show();
     }
   };
 
@@ -794,8 +809,8 @@ export function useGameLogic() {
   const watchAdForCoins = () => {
     if (watchAdCount >= 3 || !rewardedLoaded) return;
     const today = new Date().toDateString();
-    const handleReward = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
-      handleReward();
+    const handleReward = rewarded?.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+      if (handleReward) handleReward();
       const reward = 20;
       setCoins(prev => {
         const newTotal = prev + reward;
@@ -808,7 +823,7 @@ export function useGameLogic() {
       AsyncStorage.setItem('watchAdDate', today);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     });
-    rewarded.show();
+    rewarded?.show();
   };
 
   const buyIap = async (sku: string) => {

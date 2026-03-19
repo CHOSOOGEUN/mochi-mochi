@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native';
 import { useGameLogic } from './src/hooks/useGameLogic';
 import { BackgroundIllustrations, SeigaihaWaves } from './src/components/illustrations/Decorative';
 import { FallingSakura, FloatingParticle, BurstParticle } from './src/components/illustrations/Animated';
-import { MochiPattern, MochiDrawnFace } from './src/components/MochiCharacter';
+import { MochiPattern, MochiDecoration, MochiDrawnFace } from './src/components/MochiCharacter';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { ShopScreen } from './src/screens/ShopScreen';
 import { GameOverScreen } from './src/screens/GameOverScreen';
@@ -147,6 +147,7 @@ export default function App() {
             <View style={[styles.blush, { right: g.squishType === 'wide' ? '15%' : '10%', backgroundColor: g.currentSkin.blush }]} />
             <MochiDrawnFace isDead={isDead} squishType={g.squishType} isHappy={g.isHappy} />
           </View>
+          <MochiDecoration skinId={g.currentSkin.id} isDead={isDead} />
         </Animated.View>
       ) : (
         // Home mochi (tappable)
@@ -174,6 +175,7 @@ export default function App() {
               <View style={[styles.blush, { right: '10%', backgroundColor: g.currentSkin.blush }]} />
               <MochiDrawnFace isDead={false} squishType="normal" isHappy={g.homeHappy} />
             </View>
+            <MochiDecoration skinId={g.currentSkin.id} isDead={false} />
           </Animated.View>
         </TouchableOpacity>
       )}
