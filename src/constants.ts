@@ -40,21 +40,20 @@ export const IAP_BUNDLES = [
 
 // ─── Skin System ───
 export const SKINS: MochiSkin[] = [
-  { id: 'classic', name: 'Classic',  body: '#FFF9F0', border: '#F0E6D8', shadow: '#D4C4B0', blush: 'rgba(220,160,130,0.45)', deadBody: '#E8E0D8', deadBorder: '#C4B5A5', price: 0 },
-  { id: 'matcha',  name: 'Matcha',   body: '#D8F0C8', border: '#A8CC90', shadow: '#88B070', blush: 'rgba(130,190,100,0.4)',  deadBody: '#C8D8C0', deadBorder: '#A0B890', price: 150 },
-  { id: 'sakura',  name: 'Sakura',   body: '#FFE0EC', border: '#F0A8BC', shadow: '#D48AAA', blush: 'rgba(240,130,160,0.4)', deadBody: '#E8D0D8', deadBorder: '#C4A0B0', price: 400 },
-  { id: 'ichigo',  name: 'Ichigo',   body: '#FFCCD4', border: '#E890A0', shadow: '#C06878', blush: 'rgba(220,90,110,0.4)',  deadBody: '#E0C0C8', deadBorder: '#BC9098', price: 800 },
-  { id: 'kogeme',  name: 'Kogeme',   body: '#FFEEC0', border: '#D4A840', shadow: '#B08030', blush: 'rgba(210,160,60,0.4)',  deadBody: '#E0D4B0', deadBorder: '#B09868', price: 1300 },
-  { id: 'anko',    name: 'Anko',     body: '#D8B8A0', border: '#A87860', shadow: '#885840', blush: 'rgba(190,130,90,0.4)',  deadBody: '#C8B0A0', deadBorder: '#A09080', price: 2000 },
-  { id: 'sumi',    name: 'Sumi',     body: '#786868', border: '#524040', shadow: '#3A2C2C', blush: 'rgba(180,150,140,0.3)', deadBody: '#585050', deadBorder: '#3C3030', price: 3000 },
-  { id: 'yuzu',    name: 'Yuzu',     body: '#FFF4A0', border: '#E8CC30', shadow: '#C4A818', blush: 'rgba(240,200,40,0.4)',  deadBody: '#E8E4C0', deadBorder: '#C8C080', price: 5000 },
+  { id: 'classic',  name: 'Classic',    body: '#FFF8F2', border: '#EAD5C2', shadow: '#C8B09A', blush: 'rgba(240,160,145,0.38)', deadBody: '#EDE4DA', deadBorder: '#C8B8A8', price: 0 },
+  { id: 'honeybee', name: 'Honey Bee',  body: '#FFE040', border: '#E8B010', shadow: '#C88800', blush: 'rgba(255,165,20,0.4)',   deadBody: '#E8D490', deadBorder: '#C0A030', price: 150 },
+  { id: 'galaxy',   name: 'Galaxy',     body: '#100825', border: '#260C50', shadow: '#4A1E8A', blush: 'rgba(130,50,230,0.3)',   deadBody: '#1C1230', deadBorder: '#281640', price: 400 },
+  { id: 'panda',    name: 'Panda',      body: '#F6F5F0', border: '#D8D4CC', shadow: '#B0ACA4', blush: 'rgba(255,155,175,0.5)',  deadBody: '#E8E6E0', deadBorder: '#C4C0B8', price: 800 },
+  { id: 'chocmint', name: 'Choco Mint', body: '#C2EED6', border: '#7AC8A0', shadow: '#50A87A', blush: 'rgba(55,185,120,0.32)', deadBody: '#B0D4C0', deadBorder: '#88AE98', price: 1300 },
+  { id: 'cloud',    name: 'Cloud',      body: '#D6EEFF', border: '#9CC4F0', shadow: '#70A4E0', blush: 'rgba(95,155,238,0.32)', deadBody: '#C6D8EC', deadBorder: '#8EB0D0', price: 2000 },
+  { id: 'tiger',    name: 'Tiger',      body: '#FF9620', border: '#D85A08', shadow: '#A84000', blush: 'rgba(215,75,10,0.36)',   deadBody: '#D8B890', deadBorder: '#B08050', price: 3000 },
+  { id: 'pudding',  name: 'Pudding',    body: '#FFF0A0', border: '#E0C02A', shadow: '#C0A010', blush: 'rgba(238,190,28,0.4)',   deadBody: '#E8DFA8', deadBorder: '#C4B63A', price: 5000 },
 ];
 
 // ─── Game Items ───
 export const GAME_ITEMS: GameItem[] = [
   { id: 'shield', name: 'Shield', desc: 'Survive 1 miss', icon: '🛡️', price: 15 },
   { id: 'slow', name: 'Slow Down', desc: 'Next 3 targets slower', icon: '🐢', price: 10 },
-  { id: 'double', name: '2x Score', desc: 'Next 5 targets 2x pts', icon: '✨', price: 20 },
 ];
 
-export const DEFAULT_INVENTORY: Inventory = { shield: 0, slow: 0, double: 0 };
+export const DEFAULT_INVENTORY: Inventory = { shield: 0, slow: 0 };

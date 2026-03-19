@@ -1,263 +1,504 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated, Easing } from 'react-native';
 
-// ─── Interior patterns (inside overflow:hidden body) ───
-export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead: boolean }) => {
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. CLASSIC — Breathing glow + Pink ribbon bow
+// ─────────────────────────────────────────────────────────────────────────────
+const ClassicInside = () => {
+  const breathAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(Animated.sequence([
+      Animated.timing(breathAnim, { toValue: 1, duration: 3200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(breathAnim, { toValue: 0, duration: 3200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+    ])).start();
+  }, []);
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* Breathing warm pulse */}
+      <Animated.View style={{
+        position: 'absolute', top: '12%', left: '12%', right: '12%', bottom: '12%',
+        borderRadius: 999,
+        backgroundColor: '#FFE0D0',
+        opacity: breathAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.14] }),
+      }} />
+      {/* Primary gloss — top right */}
+      <View style={{ position: 'absolute', top: '7%', right: '9%', width: 32, height: 20, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.6)', transform: [{ rotate: '-36deg' }] }} />
+      {/* Secondary gloss */}
+      <View style={{ position: 'absolute', top: '18%', right: '22%', width: 14, height: 9, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.44)', transform: [{ rotate: '-36deg' }] }} />
+      {/* Soft bottom depth shadow */}
+      <View style={{ position: 'absolute', bottom: 0, left: '14%', right: '14%', height: '26%', backgroundColor: 'rgba(215,175,155,0.1)', borderTopLeftRadius: 80, borderTopRightRadius: 80 }} />
+    </View>
+  );
+};
+
+const ClassicOutside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Left bow wing */}
+    <View style={{ position: 'absolute', top: '-30%', left: '1%', width: 38, height: 26, borderRadius: 19, backgroundColor: '#EF6080', transform: [{ rotate: '-26deg' }] }}>
+      <View style={{ position: 'absolute', top: 5, left: 6, right: 6, bottom: 5, borderRadius: 13, backgroundColor: 'rgba(255,148,168,0.52)' }} />
+    </View>
+    {/* Right bow wing */}
+    <View style={{ position: 'absolute', top: '-30%', right: '1%', width: 38, height: 26, borderRadius: 19, backgroundColor: '#EF6080', transform: [{ rotate: '26deg' }] }}>
+      <View style={{ position: 'absolute', top: 5, left: 6, right: 6, bottom: 5, borderRadius: 13, backgroundColor: 'rgba(255,148,168,0.52)' }} />
+    </View>
+    {/* Bow center knot */}
+    <View style={{ position: 'absolute', top: '-18%', left: '37%', width: 22, height: 22, borderRadius: 11, backgroundColor: '#D83858' }}>
+      <View style={{ position: 'absolute', top: 5, left: 5, width: 7, height: 7, borderRadius: 3.5, backgroundColor: 'rgba(255,255,255,0.5)' }} />
+    </View>
+    {/* Bow tails */}
+    <View style={{ position: 'absolute', top: '-5%', left: '28%', width: 13, height: 24, borderRadius: 6.5, backgroundColor: '#EF6080', transform: [{ rotate: '-22deg' }] }} />
+    <View style={{ position: 'absolute', top: '-5%', right: '28%', width: 13, height: 24, borderRadius: 6.5, backgroundColor: '#EF6080', transform: [{ rotate: '22deg' }] }} />
+  </View>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. HONEY BEE — Stripes + Flapping wings + Antennae
+// ─────────────────────────────────────────────────────────────────────────────
+const HoneyBeeInside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Black stripes — rounded to fit the circle */}
+    {[18, 36, 53, 70].map((top, i) => (
+      <View key={i} style={{
+        position: 'absolute', top: `${top}%` as any, left: '0%', right: '0%',
+        height: `${11 - i * 1.5}%`,
+        backgroundColor: 'rgba(16,8,0,0.8)',
+        borderRadius: 28,
+      }} />
+    ))}
+    {/* Stinger bottom */}
+    <View style={{ position: 'absolute', bottom: '5%', left: '44%', width: 10, height: 13, borderBottomLeftRadius: 5, borderBottomRightRadius: 5, borderTopLeftRadius: 2, borderTopRightRadius: 2, backgroundColor: 'rgba(16,8,0,0.5)' }} />
+    {/* Gloss */}
+    <View style={{ position: 'absolute', top: '7%', right: '10%', width: 26, height: 16, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.5)', transform: [{ rotate: '-28deg' }] }} />
+  </View>
+);
+
+const HoneyBeeOutside = () => {
+  const wingAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(Animated.sequence([
+      Animated.timing(wingAnim, { toValue: 1, duration: 95, easing: Easing.linear, useNativeDriver: false }),
+      Animated.timing(wingAnim, { toValue: -1, duration: 95, easing: Easing.linear, useNativeDriver: false }),
+    ])).start();
+  }, []);
+  const lRot = wingAnim.interpolate({ inputRange: [-1, 1], outputRange: ['-20deg', '18deg'] });
+  const rRot = wingAnim.interpolate({ inputRange: [-1, 1], outputRange: ['20deg', '-18deg'] });
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* Left wing */}
+      <Animated.View style={{
+        position: 'absolute', top: '2%', left: '-34%',
+        width: 46, height: 30, borderRadius: 23,
+        backgroundColor: 'rgba(210,238,255,0.74)',
+        borderWidth: 1.5, borderColor: 'rgba(130,185,230,0.52)',
+        transformOrigin: '46px 15px' as any,
+        transform: [{ rotate: lRot }],
+      }} />
+      {/* Right wing */}
+      <Animated.View style={{
+        position: 'absolute', top: '2%', right: '-34%',
+        width: 46, height: 30, borderRadius: 23,
+        backgroundColor: 'rgba(210,238,255,0.74)',
+        borderWidth: 1.5, borderColor: 'rgba(130,185,230,0.52)',
+        transformOrigin: '0px 15px' as any,
+        transform: [{ rotate: rRot }],
+      }} />
+      {/* Left antenna */}
+      <View style={{ position: 'absolute', top: '-30%', left: '19%', width: 4, height: 32, borderRadius: 2, backgroundColor: '#160A00', transform: [{ rotate: '-22deg' }] }}>
+        <View style={{ position: 'absolute', top: -11, left: -5, width: 14, height: 14, borderRadius: 7, backgroundColor: '#FFD010', borderWidth: 2.5, borderColor: '#160A00' }} />
+      </View>
+      {/* Right antenna */}
+      <View style={{ position: 'absolute', top: '-30%', right: '19%', width: 4, height: 32, borderRadius: 2, backgroundColor: '#160A00', transform: [{ rotate: '22deg' }] }}>
+        <View style={{ position: 'absolute', top: -11, left: -5, width: 14, height: 14, borderRadius: 7, backgroundColor: '#FFD010', borderWidth: 2.5, borderColor: '#160A00' }} />
+      </View>
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. GALAXY — Twinkling stars + Floating planet
+// ─────────────────────────────────────────────────────────────────────────────
+const STAR_DATA = [
+  { t: 13, l: 20, s: 4 }, { t: 24, l: 68, s: 3 }, { t: 40, l: 10, s: 5 },
+  { t: 52, l: 54, s: 3 }, { t: 34, l: 80, s: 4 }, { t: 66, l: 28, s: 3 },
+  { t: 18, l: 45, s: 6 }, { t: 58, l: 72, s: 4 }, { t: 76, l: 46, s: 3 },
+  { t: 30, l: 34, s: 3 }, { t: 14, l: 84, s: 5 }, { t: 72, l: 12, s: 4 },
+  { t: 46, l: 60, s: 3 }, { t: 84, l: 62, s: 3 },
+];
+
+const TwinkleStar = ({ t, l, s, delay }: { t: number; l: number; s: number; delay: number }) => {
+  const op = useRef(new Animated.Value(0.5)).current;
+  useEffect(() => {
+    const go = () => {
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(op, { toValue: 0.1 + Math.random() * 0.4, duration: 450 + Math.random() * 650, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(op, { toValue: 0.55 + Math.random() * 0.45, duration: 450 + Math.random() * 650, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]).start(go);
+    };
+    go();
+  }, []);
+  return (
+    <Animated.View style={{ position: 'absolute', top: `${t}%` as any, left: `${l}%` as any, width: s, height: s, borderRadius: s / 2, backgroundColor: '#FFFFFF', opacity: op }} />
+  );
+};
+
+const GalaxyInside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Deep space nebula */}
+    <View style={{ position: 'absolute', top: '8%', left: '5%', width: '58%', height: '58%', borderRadius: 999, backgroundColor: 'rgba(85,32,160,0.3)' }} />
+    <View style={{ position: 'absolute', bottom: '6%', right: '4%', width: '44%', height: '44%', borderRadius: 999, backgroundColor: 'rgba(25,85,190,0.22)' }} />
+    <View style={{ position: 'absolute', top: '40%', left: '30%', width: '35%', height: '35%', borderRadius: 999, backgroundColor: 'rgba(190,60,160,0.15)' }} />
+    {/* Stars */}
+    {STAR_DATA.map((s, i) => <TwinkleStar key={i} {...s} delay={i * 175} />)}
+    {/* Gloss (subtle on dark background) */}
+    <View style={{ position: 'absolute', top: '8%', right: '10%', width: 18, height: 10, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.14)', transform: [{ rotate: '-28deg' }] }} />
+  </View>
+);
+
+const GalaxyOutside = () => {
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(Animated.sequence([
+      Animated.timing(floatAnim, { toValue: 1, duration: 4000, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      Animated.timing(floatAnim, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+    ])).start();
+  }, []);
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Animated.View style={{
+        position: 'absolute', top: '-26%', right: '-10%',
+        transform: [{ translateY: floatAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -10] }) }],
+      }}>
+        {/* Planet body */}
+        <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#5A2A8A', borderWidth: 2, borderColor: '#8A50C8' }}>
+          <View style={{ position: 'absolute', top: 5, left: 5, width: 10, height: 7, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.18)' }} />
+          <View style={{ position: 'absolute', top: 9, left: 8, right: 8, height: 4, borderRadius: 2, backgroundColor: 'rgba(150,80,200,0.5)' }} />
+        </View>
+        {/* Ring */}
+        <View style={{
+          position: 'absolute', top: 11, left: -14,
+          width: 62, height: 12, borderRadius: 8,
+          borderWidth: 3, borderColor: 'rgba(160,100,220,0.65)',
+          backgroundColor: 'transparent',
+          transform: [{ rotateX: '68deg' }],
+        }} />
+      </Animated.View>
+      {/* Outer sparkles */}
+      <View style={{ position: 'absolute', top: '-6%', left: '10%', width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(185,130,255,0.9)' }} />
+      <View style={{ position: 'absolute', top: '7%', right: '2%', width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(130,200,255,0.85)' }} />
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. PANDA — Eye patches + Twitching ears
+// ─────────────────────────────────────────────────────────────────────────────
+const PandaInside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Left eye patch */}
+    <View style={{ position: 'absolute', top: '20%', left: '5%', width: 34, height: 30, borderRadius: 17, backgroundColor: 'rgba(22,16,14,0.86)', transform: [{ rotate: '-10deg' }] }}>
+      <View style={{ position: 'absolute', top: 6, left: 6, width: 11, height: 8, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+    </View>
+    {/* Right eye patch */}
+    <View style={{ position: 'absolute', top: '20%', right: '5%', width: 34, height: 30, borderRadius: 17, backgroundColor: 'rgba(22,16,14,0.86)', transform: [{ rotate: '10deg' }] }}>
+      <View style={{ position: 'absolute', top: 6, right: 6, width: 11, height: 8, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+    </View>
+    {/* Gloss */}
+    <View style={{ position: 'absolute', top: '8%', right: '12%', width: 24, height: 15, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.58)', transform: [{ rotate: '-26deg' }] }} />
+    {/* Subtle bottom shade */}
+    <View style={{ position: 'absolute', bottom: 0, left: '10%', right: '10%', height: '22%', backgroundColor: 'rgba(150,145,140,0.1)', borderTopLeftRadius: 70, borderTopRightRadius: 70 }} />
+  </View>
+);
+
+const PandaOutside = () => {
+  const leftY = useRef(new Animated.Value(0)).current;
+  const rightY = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const twitch = () => {
+      Animated.sequence([
+        Animated.timing(leftY, { toValue: -4, duration: 100, useNativeDriver: false }),
+        Animated.timing(leftY, { toValue: 0, duration: 200, easing: Easing.out(Easing.bounce), useNativeDriver: false }),
+        Animated.delay(480),
+        Animated.timing(rightY, { toValue: -4, duration: 100, useNativeDriver: false }),
+        Animated.timing(rightY, { toValue: 0, duration: 200, easing: Easing.out(Easing.bounce), useNativeDriver: false }),
+        Animated.delay(720),
+      ]).start(twitch);
+    };
+    twitch();
+  }, []);
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* Left ear */}
+      <Animated.View style={{ position: 'absolute', top: '-22%', left: '4%', transform: [{ translateY: leftY }, { rotate: '-10deg' }] }}>
+        <View style={{ width: 44, height: 40, borderRadius: 22, backgroundColor: '#1A1210' }}>
+          <View style={{ position: 'absolute', top: 10, left: 10, right: 10, bottom: 8, borderRadius: 16, backgroundColor: 'rgba(255,160,185,0.2)' }} />
+        </View>
+      </Animated.View>
+      {/* Right ear */}
+      <Animated.View style={{ position: 'absolute', top: '-22%', right: '4%', transform: [{ translateY: rightY }, { rotate: '10deg' }] }}>
+        <View style={{ width: 44, height: 40, borderRadius: 22, backgroundColor: '#1A1210' }}>
+          <View style={{ position: 'absolute', top: 10, left: 10, right: 10, bottom: 8, borderRadius: 16, backgroundColor: 'rgba(255,160,185,0.2)' }} />
+        </View>
+      </Animated.View>
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. CHOCO MINT — Choco chips + Syrup sway
+// ─────────────────────────────────────────────────────────────────────────────
+const CHIP_DATA = [
+  { t: 15, l: 9, r: '10deg', w: 18, h: 11 }, { t: 28, l: 57, r: '-20deg', w: 20, h: 12 },
+  { t: 44, l: 5, r: '6deg', w: 16, h: 10 },  { t: 55, l: 68, r: '-12deg', w: 17, h: 10 },
+  { t: 68, l: 29, r: '18deg', w: 15, h: 9 }, { t: 37, l: 33, r: '-5deg', w: 14, h: 9 },
+  { t: 18, l: 76, r: '15deg', w: 13, h: 8 }, { t: 60, l: 50, r: '8deg', w: 11, h: 7 },
+];
+
+const ChocoMintInside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Cool mint gradient hint */}
+    <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '42%', backgroundColor: 'rgba(50,195,130,0.1)', borderTopLeftRadius: 90, borderTopRightRadius: 90 }} />
+    {/* Choco chips */}
+    {CHIP_DATA.map((c, i) => (
+      <View key={i} style={{
+        position: 'absolute', top: `${c.t}%` as any, left: `${c.l}%` as any,
+        width: c.w, height: c.h, borderRadius: c.h * 0.44,
+        backgroundColor: '#38180A',
+        transform: [{ rotate: c.r }],
+        shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 2, shadowOffset: { width: 0, height: 1 },
+      }} />
+    ))}
+    {/* Gloss */}
+    <View style={{ position: 'absolute', top: '7%', right: '10%', width: 26, height: 16, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.48)', transform: [{ rotate: '-28deg' }] }} />
+  </View>
+);
+
+const ChocoMintOutside = () => {
+  const swayAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(Animated.sequence([
+      Animated.timing(swayAnim, { toValue: 1, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      Animated.timing(swayAnim, { toValue: -1, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+    ])).start();
+  }, []);
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Animated.View style={{
+        position: 'absolute', top: '-20%', left: '16%', right: '16%',
+        transform: [{ rotate: swayAnim.interpolate({ inputRange: [-1, 1], outputRange: ['-5deg', '5deg'] }) }],
+        transformOrigin: '50% 100%' as any,
+      }}>
+        {/* Syrup cap */}
+        <View style={{ height: 20, backgroundColor: '#2C1204', borderTopLeftRadius: 18, borderTopRightRadius: 18, borderBottomLeftRadius: 5, borderBottomRightRadius: 5 }}>
+          <View style={{ position: 'absolute', top: 5, left: 8, width: 14, height: 6, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+        </View>
+        {/* Left drip */}
+        <View style={{ position: 'absolute', top: 15, left: '12%', width: 9, height: 22, borderRadius: 4.5, backgroundColor: '#2C1204' }}>
+          <View style={{ position: 'absolute', bottom: -9, left: -4, width: 17, height: 17, borderRadius: 8.5, backgroundColor: '#2C1204' }} />
+        </View>
+        {/* Right drip */}
+        <View style={{ position: 'absolute', top: 13, right: '16%', width: 8, height: 16, borderRadius: 4, backgroundColor: '#2C1204' }}>
+          <View style={{ position: 'absolute', bottom: -7, left: -3, width: 14, height: 14, borderRadius: 7, backgroundColor: '#2C1204' }} />
+        </View>
+      </Animated.View>
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. CLOUD — Fluffy bottom puffs + Floating
+// ─────────────────────────────────────────────────────────────────────────────
+const CloudInside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Sky blue tint top half */}
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '48%', backgroundColor: 'rgba(100,180,255,0.14)', borderBottomLeftRadius: 90, borderBottomRightRadius: 90 }} />
+    {/* Fluffy cloud puffs — bottom */}
+    {[{ l: '-4%', s: 56 }, { l: '18%', s: 62 }, { l: '42%', s: 54 }, { l: '62%', s: 50 }].map((c, i) => (
+      <View key={i} style={{ position: 'absolute', bottom: '-10%' as any, left: c.l as any, width: c.s, height: c.s, borderRadius: c.s / 2, backgroundColor: 'rgba(255,255,255,0.82)' }} />
+    ))}
+    {/* Gloss */}
+    <View style={{ position: 'absolute', top: '9%', right: '12%', width: 26, height: 16, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.65)', transform: [{ rotate: '-24deg' }] }} />
+  </View>
+);
+
+const CloudOutside = () => {
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(Animated.sequence([
+      Animated.timing(floatAnim, { toValue: 1, duration: 2600, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      Animated.timing(floatAnim, { toValue: 0, duration: 2600, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+    ])).start();
+  }, []);
+  return (
+    <Animated.View
+      style={[StyleSheet.absoluteFill, { transform: [{ translateY: floatAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -10] }) }] }]}
+      pointerEvents="none"
+    >
+      {/* Left cloud cluster */}
+      <View style={{ position: 'absolute', top: '-16%', left: '-16%' }}>
+        <View style={{ width: 38, height: 28, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.94)' }} />
+        <View style={{ position: 'absolute', top: -12, left: 6, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.94)' }} />
+        <View style={{ position: 'absolute', top: -8, left: 20, width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.94)' }} />
+      </View>
+      {/* Right cloud cluster */}
+      <View style={{ position: 'absolute', top: '-10%', right: '-12%' }}>
+        <View style={{ width: 30, height: 22, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.9)' }} />
+        <View style={{ position: 'absolute', top: -9, right: 5, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.9)' }} />
+      </View>
+      {/* Raindrops */}
+      {[{ l: '22%', h: 10 }, { l: '46%', h: 8 }, { l: '66%', h: 11 }].map((r, i) => (
+        <View key={i} style={{ position: 'absolute', bottom: '-22%' as any, left: r.l as any, width: 3.5, height: r.h, borderRadius: 2, backgroundColor: 'rgba(80,145,215,0.6)', transform: [{ rotate: '10deg' }] }} />
+      ))}
+    </Animated.View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. TIGER — Stripes + Triangle ears
+// ─────────────────────────────────────────────────────────────────────────────
+const TigerInside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Left V-stripes */}
+    <View style={{ position: 'absolute', top: '14%', left: '3%', width: 28, height: 10, borderRadius: 5, backgroundColor: 'rgba(16,6,0,0.64)', transform: [{ rotate: '48deg' }] }} />
+    <View style={{ position: 'absolute', top: '29%', left: '7%', width: 22, height: 9, borderRadius: 4.5, backgroundColor: 'rgba(16,6,0,0.56)', transform: [{ rotate: '52deg' }] }} />
+    <View style={{ position: 'absolute', top: '44%', left: '9%', width: 18, height: 8, borderRadius: 4, backgroundColor: 'rgba(16,6,0,0.48)', transform: [{ rotate: '48deg' }] }} />
+    {/* Right V-stripes */}
+    <View style={{ position: 'absolute', top: '14%', right: '3%', width: 28, height: 10, borderRadius: 5, backgroundColor: 'rgba(16,6,0,0.64)', transform: [{ rotate: '-48deg' }] }} />
+    <View style={{ position: 'absolute', top: '29%', right: '7%', width: 22, height: 9, borderRadius: 4.5, backgroundColor: 'rgba(16,6,0,0.56)', transform: [{ rotate: '-52deg' }] }} />
+    <View style={{ position: 'absolute', top: '44%', right: '9%', width: 18, height: 8, borderRadius: 4, backgroundColor: 'rgba(16,6,0,0.48)', transform: [{ rotate: '-48deg' }] }} />
+    {/* Forehead stripe */}
+    <View style={{ position: 'absolute', top: '5%', left: '41%', width: 15, height: 28, borderRadius: 7.5, backgroundColor: 'rgba(16,6,0,0.52)' }} />
+    {/* Gloss */}
+    <View style={{ position: 'absolute', top: '6%', right: '11%', width: 26, height: 16, borderRadius: 13, backgroundColor: 'rgba(255,205,100,0.38)', transform: [{ rotate: '-26deg' }] }} />
+  </View>
+);
+
+const TigerOutside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Left ear — triangle */}
+    <View style={{
+      position: 'absolute', top: '-28%', left: '7%',
+      width: 0, height: 0, borderStyle: 'solid',
+      borderLeftWidth: 22, borderRightWidth: 22, borderBottomWidth: 40,
+      borderLeftColor: 'transparent', borderRightColor: 'transparent',
+      borderBottomColor: '#FF9828',
+    }}>
+      {/* Inner ear */}
+      <View style={{
+        position: 'absolute', top: 14, left: -12,
+        width: 0, height: 0, borderStyle: 'solid',
+        borderLeftWidth: 12, borderRightWidth: 12, borderBottomWidth: 22,
+        borderLeftColor: 'transparent', borderRightColor: 'transparent',
+        borderBottomColor: '#C84820',
+      }} />
+    </View>
+    {/* Right ear */}
+    <View style={{
+      position: 'absolute', top: '-28%', right: '7%',
+      width: 0, height: 0, borderStyle: 'solid',
+      borderLeftWidth: 22, borderRightWidth: 22, borderBottomWidth: 40,
+      borderLeftColor: 'transparent', borderRightColor: 'transparent',
+      borderBottomColor: '#FF9828',
+    }}>
+      <View style={{
+        position: 'absolute', top: 14, left: -12,
+        width: 0, height: 0, borderStyle: 'solid',
+        borderLeftWidth: 12, borderRightWidth: 12, borderBottomWidth: 22,
+        borderLeftColor: 'transparent', borderRightColor: 'transparent',
+        borderBottomColor: '#C84820',
+      }} />
+    </View>
+  </View>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. PUDDING — Caramel top + Cherry shake
+// ─────────────────────────────────────────────────────────────────────────────
+const PuddingInside = () => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    {/* Caramel top coat */}
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '40%', backgroundColor: 'rgba(155,75,0,0.38)', borderBottomLeftRadius: 78, borderBottomRightRadius: 78 }} />
+    {/* Cream body highlight */}
+    <View style={{ position: 'absolute', top: '36%', left: '14%', right: '14%', height: '20%', backgroundColor: 'rgba(255,240,155,0.22)', borderRadius: 28 }} />
+    {/* Primary gloss */}
+    <View style={{ position: 'absolute', top: '6%', right: '9%', width: 30, height: 18, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.48)', transform: [{ rotate: '-30deg' }] }} />
+    {/* Secondary gloss */}
+    <View style={{ position: 'absolute', top: '16%', right: '25%', width: 13, height: 8, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.34)', transform: [{ rotate: '-30deg' }] }} />
+    {/* Pudding ring lines */}
+    <View style={{ position: 'absolute', top: '52%', left: '10%', right: '10%', height: 3.5, backgroundColor: 'rgba(190,135,25,0.22)', borderRadius: 2 }} />
+    <View style={{ position: 'absolute', top: '63%', left: '16%', right: '16%', height: 2.5, backgroundColor: 'rgba(190,135,25,0.16)', borderRadius: 2 }} />
+  </View>
+);
+
+const PuddingOutside = () => {
+  const shakeX = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const shake = () => {
+      Animated.sequence([
+        Animated.timing(shakeX, { toValue: 3.5, duration: 65, easing: Easing.linear, useNativeDriver: false }),
+        Animated.timing(shakeX, { toValue: -3.5, duration: 65, easing: Easing.linear, useNativeDriver: false }),
+        Animated.timing(shakeX, { toValue: 2.5, duration: 65, easing: Easing.linear, useNativeDriver: false }),
+        Animated.timing(shakeX, { toValue: -1.5, duration: 65, easing: Easing.linear, useNativeDriver: false }),
+        Animated.timing(shakeX, { toValue: 0, duration: 65, easing: Easing.linear, useNativeDriver: false }),
+        Animated.delay(2800),
+      ]).start(shake);
+    };
+    shake();
+  }, []);
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Animated.View style={{
+        position: 'absolute', top: '-30%', left: '33%',
+        transform: [{ translateX: shakeX }],
+      }}>
+        {/* Stem */}
+        <View style={{ position: 'absolute', top: -20, left: 12, width: 3.5, height: 22, borderRadius: 2, backgroundColor: '#286018', transform: [{ rotate: '16deg' }] }} />
+        {/* Cherry */}
+        <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#C41620', borderWidth: 1.5, borderColor: '#9C101A' }}>
+          <View style={{ position: 'absolute', top: 4, left: 5, width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.58)' }} />
+          <View style={{ position: 'absolute', top: 3, left: 14, width: 5, height: 4, borderRadius: 2.5, backgroundColor: 'rgba(255,255,255,0.32)' }} />
+        </View>
+      </Animated.View>
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Exports
+// ─────────────────────────────────────────────────────────────────────────────
+export const MochiPattern = ({ skinId, isDead }: { skinId: string; isDead?: boolean }) => {
   if (isDead) return null;
   switch (skinId) {
-    case 'classic':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Shine */}
-          <View style={{ position: 'absolute', top: '14%', left: '10%', width: 24, height: 14, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.3)', transform: [{ rotate: '-18deg' }] }} />
-        </View>
-      );
-    case 'matcha':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Matcha foam circle */}
-          <View style={{ position: 'absolute', top: '36%', left: '18%', width: 48, height: 42, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.28)' }} />
-          {/* Foam swirl */}
-          <View style={{ position: 'absolute', top: '38%', left: '25%', width: 32, height: 32, borderRadius: 16, borderWidth: 3, borderColor: 'rgba(40,110,30,0.45)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '-20deg' }] }} />
-          <View style={{ position: 'absolute', top: '44%', left: '34%', width: 18, height: 18, borderRadius: 9, borderWidth: 2.5, borderColor: 'rgba(40,110,30,0.38)', borderRightColor: 'transparent', borderBottomColor: 'transparent', transform: [{ rotate: '50deg' }] }} />
-          {/* Tea powder dots */}
-          {[{ t: 62, l: 16, s: 8 }, { t: 66, l: 38, s: 6 }, { t: 70, l: 60, s: 7 }, { t: 74, l: 28, s: 5 }, { t: 72, l: 72, s: 6 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, borderRadius: p.s / 2, backgroundColor: 'rgba(40,110,30,0.38)' }} />
-          ))}
-        </View>
-      );
-    case 'sakura':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Soft pink inner wash */}
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(248,138,168,0.1)' }} />
-          {/* Scattered petals inside */}
-          {[{ t: 30, l: 8, r: '-18deg', op: 0.52 }, { t: 44, l: 60, r: '28deg', op: 0.47 }, { t: 58, l: 12, r: '-38deg', op: 0.42 }, { t: 52, l: 66, r: '16deg', op: 0.5 }, { t: 66, l: 36, r: '-12deg', op: 0.4 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, transform: [{ rotate: p.r }] }}>
-              {[0, 72, 144, 216, 288].map((deg, j) => (
-                <View key={j} style={{ position: 'absolute', width: 8, height: 10, borderRadius: 4, backgroundColor: `rgba(245,130,163,${p.op})`, transform: [{ rotate: `${deg}deg` }, { translateY: -6 }], transformOrigin: '4px 10px' as any }} />
-              ))}
-              <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: `rgba(255,205,65,${p.op + 0.15})` }} />
-            </View>
-          ))}
-          {/* Leaf */}
-          <View style={{ position: 'absolute', bottom: '6%', left: '5%', width: '40%', height: 15, backgroundColor: 'rgba(105,168,85,0.38)', borderTopLeftRadius: 14, borderTopRightRadius: 30, borderBottomRightRadius: 7, transform: [{ rotate: '-6deg' }] }} />
-        </View>
-      );
-    case 'ichigo':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Red wash bottom */}
-          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '58%', backgroundColor: 'rgba(195,35,65,0.13)', borderTopLeftRadius: 90, borderTopRightRadius: 90 }} />
-          {/* Seeds */}
-          {[{ t: 26, l: 16 }, { t: 22, l: 52 }, { t: 40, l: 70 }, { t: 50, l: 26 }, { t: 36, l: 44 }, { t: 60, l: 14 }, { t: 55, l: 60 }, { t: 68, l: 36 }, { t: 30, l: 74 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 5, height: 7, borderRadius: 2.5, backgroundColor: 'rgba(135,18,32,0.58)', transform: [{ rotate: `${i * 22}deg` }] }} />
-          ))}
-          {/* Shine */}
-          <View style={{ position: 'absolute', top: '15%', left: '13%', width: 24, height: 15, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.42)', transform: [{ rotate: '-20deg' }] }} />
-        </View>
-      );
-    case 'kogeme':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Burnt top */}
-          <View style={{ position: 'absolute', top: 0, left: '5%', right: '5%', height: '38%', backgroundColor: 'rgba(138,78,4,0.34)', borderBottomLeftRadius: 70, borderBottomRightRadius: 70 }} />
-          {/* Caramel diamond spots */}
-          {[{ t: 4, l: 16, s: 17 }, { t: 8, l: 50, s: 13 }, { t: 2, l: 34, s: 11 }, { t: 14, l: 68, s: 14 }, { t: 12, l: 8, s: 12 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: p.s, height: p.s, backgroundColor: `rgba(148,78,4,${0.38 + (i % 3) * 0.1})`, transform: [{ rotate: '45deg' }] }} />
-          ))}
-          {/* Caramel drips */}
-          <View style={{ position: 'absolute', top: '30%', left: '20%', width: 7, height: 30, borderRadius: 3.5, backgroundColor: 'rgba(152,84,6,0.48)' }}>
-            <View style={{ position: 'absolute', bottom: -7, left: -5, width: 17, height: 17, borderRadius: 8.5, backgroundColor: 'rgba(152,84,6,0.4)' }} />
-          </View>
-          <View style={{ position: 'absolute', top: '26%', left: '58%', width: 6, height: 22, borderRadius: 3, backgroundColor: 'rgba(152,84,6,0.42)' }}>
-            <View style={{ position: 'absolute', bottom: -6, left: -4, width: 14, height: 14, borderRadius: 7, backgroundColor: 'rgba(152,84,6,0.34)' }} />
-          </View>
-        </View>
-      );
-    case 'anko':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Dark anko fill */}
-          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '52%', backgroundColor: 'rgba(52,14,6,0.2)', borderTopLeftRadius: 65, borderTopRightRadius: 65 }} />
-          {/* Seam */}
-          <View style={{ position: 'absolute', top: '40%', left: '5%', right: '5%', height: 5, backgroundColor: 'rgba(52,14,6,0.52)', borderRadius: 2.5 }} />
-          {/* Thick sauce drips */}
-          <View style={{ position: 'absolute', top: '36%', left: '12%', width: 10, height: 32, borderRadius: 5, backgroundColor: 'rgba(52,14,6,0.54)' }}>
-            <View style={{ position: 'absolute', bottom: -8, left: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(52,14,6,0.44)' }} />
-          </View>
-          <View style={{ position: 'absolute', top: '32%', left: '47%', width: 8, height: 24, borderRadius: 4, backgroundColor: 'rgba(52,14,6,0.48)' }}>
-            <View style={{ position: 'absolute', bottom: -6, left: -5, width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(52,14,6,0.38)' }} />
-          </View>
-          <View style={{ position: 'absolute', top: '38%', left: '67%', width: 7, height: 19, borderRadius: 3.5, backgroundColor: 'rgba(52,14,6,0.44)' }}>
-            <View style={{ position: 'absolute', bottom: -5, left: -4, width: 15, height: 15, borderRadius: 7.5, backgroundColor: 'rgba(52,14,6,0.35)' }} />
-          </View>
-          {/* Anko beans */}
-          {[{ t: 55, l: 16 }, { t: 62, l: 36 }, { t: 58, l: 58 }, { t: 68, l: 24 }, { t: 65, l: 53 }, { t: 73, l: 40 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 9, height: 7, borderRadius: 4.5, backgroundColor: 'rgba(52,14,6,0.36)' }} />
-          ))}
-          {/* Drip highlight */}
-          <View style={{ position: 'absolute', top: '37%', left: '13%', width: 4, height: 22, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.24)' }} />
-        </View>
-      );
-    case 'sumi':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Ember glow center */}
-          <View style={{ position: 'absolute', bottom: '8%', left: '16%', right: '16%', height: '42%', backgroundColor: 'rgba(215,68,14,0.18)', borderRadius: 55 }} />
-          {/* Crack lines */}
-          <View style={{ position: 'absolute', top: '20%', left: '10%', width: 50, height: 2.5, backgroundColor: 'rgba(220,200,188,0.45)', transform: [{ rotate: '9deg' }] }} />
-          <View style={{ position: 'absolute', top: '31%', left: '46%', width: 32, height: 2, backgroundColor: 'rgba(220,200,188,0.38)', transform: [{ rotate: '-34deg' }] }} />
-          <View style={{ position: 'absolute', top: '54%', left: '14%', width: 26, height: 1.5, backgroundColor: 'rgba(220,200,188,0.3)', transform: [{ rotate: '16deg' }] }} />
-          {/* Ember diamonds */}
-          {[{ t: 54, l: 12 }, { t: 61, l: 46 }, { t: 57, l: 67 }, { t: 67, l: 26 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 12, height: 12, backgroundColor: 'rgba(245,88,18,0.65)', transform: [{ rotate: '45deg' }] }} />
-          ))}
-          {/* Ash specks */}
-          {[{ t: 23, l: 26 }, { t: 37, l: 62 }, { t: 47, l: 18 }, { t: 33, l: 72 }, { t: 59, l: 42 }, { t: 29, l: 46 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(228,213,202,0.44)' }} />
-          ))}
-          {/* Ember peek at top */}
-          <View style={{ position: 'absolute', top: '-8%', left: '32%', width: 22, height: 12, borderRadius: 11, backgroundColor: 'rgba(245,75,14,0.34)', transform: [{ rotate: '-5deg' }] }} />
-        </View>
-      );
-    case 'yuzu':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Yellow glow */}
-          <View style={{ position: 'absolute', top: '26%', left: '10%', right: '10%', height: '52%', backgroundColor: 'rgba(240,198,18,0.2)', borderRadius: 55 }} />
-          {/* Big citrus slice */}
-          <View style={{ position: 'absolute', top: '38%', left: '14%', width: 42, height: 42, borderRadius: 21, borderWidth: 3, borderColor: 'rgba(188,148,12,0.52)', backgroundColor: 'rgba(255,238,95,0.24)', justifyContent: 'center', alignItems: 'center' }}>
-            {[0, 45, 90, 135].map((deg, i) => (
-              <View key={i} style={{ position: 'absolute', width: 26, height: 2.5, backgroundColor: 'rgba(188,148,12,0.45)', borderRadius: 1.5, transform: [{ rotate: `${deg}deg` }] }} />
-            ))}
-            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(238,198,18,0.45)' }} />
-          </View>
-          {/* Star asterisk */}
-          {[0, 60, 120].map((deg, i) => (
-            <View key={i} style={{ position: 'absolute', top: '56%', right: '8%', width: 22, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(188,148,12,0.42)', transform: [{ rotate: `${deg}deg` }] }} />
-          ))}
-          {/* Zest dots */}
-          {[{ t: 26, l: 12 }, { t: 34, l: 55 }, { t: 62, l: 20 }, { t: 40, l: 74 }, { t: 70, l: 56 }, { t: 23, l: 64 }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: `${p.t}%` as any, left: `${p.l}%` as any, width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(208,168,12,0.45)' }} />
-          ))}
-        </View>
-      );
-    default:
-      return null;
+    case 'classic':  return <ClassicInside />;
+    case 'honeybee': return <HoneyBeeInside />;
+    case 'galaxy':   return <GalaxyInside />;
+    case 'panda':    return <PandaInside />;
+    case 'chocmint': return <ChocoMintInside />;
+    case 'cloud':    return <CloudInside />;
+    case 'tiger':    return <TigerInside />;
+    case 'pudding':  return <PuddingInside />;
+    default:         return <ClassicInside />;
   }
 };
 
-// ─── Overflow decorations (rendered OUTSIDE overflow:hidden body) ───
-export const MochiDecoration = ({ skinId, isDead }: { skinId: string; isDead: boolean }) => {
+export const MochiDecoration = ({ skinId, isDead }: { skinId: string; isDead?: boolean }) => {
   if (isDead) return null;
   switch (skinId) {
-    case 'classic':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Pink bow - left wing */}
-          <View style={{ position: 'absolute', top: '-32%', left: '6%', width: 28, height: 19, borderRadius: 14, backgroundColor: '#E06882', transform: [{ rotate: '-28deg' }] }} />
-          <View style={{ position: 'absolute', top: '-35%', left: '11%', width: 19, height: 13, borderRadius: 9, backgroundColor: '#F090A8', transform: [{ rotate: '-28deg' }] }} />
-          {/* Right wing */}
-          <View style={{ position: 'absolute', top: '-32%', right: '6%', width: 28, height: 19, borderRadius: 14, backgroundColor: '#E06882', transform: [{ rotate: '28deg' }] }} />
-          <View style={{ position: 'absolute', top: '-35%', right: '11%', width: 19, height: 13, borderRadius: 9, backgroundColor: '#F090A8', transform: [{ rotate: '28deg' }] }} />
-          {/* Bow center knot */}
-          <View style={{ position: 'absolute', top: '-22%', left: '41%', width: 16, height: 16, borderRadius: 8, backgroundColor: '#C85070' }} />
-          {/* Bow tails */}
-          <View style={{ position: 'absolute', top: '-12%', left: '34%', width: 10, height: 17, borderRadius: 5, backgroundColor: '#E06882', transform: [{ rotate: '-22deg' }] }} />
-          <View style={{ position: 'absolute', top: '-12%', right: '34%', width: 10, height: 17, borderRadius: 5, backgroundColor: '#E06882', transform: [{ rotate: '22deg' }] }} />
-        </View>
-      );
-    case 'matcha':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Bamboo leaves sticking out */}
-          <View style={{ position: 'absolute', top: '-34%', left: '18%', width: 15, height: 34, borderRadius: 7, backgroundColor: '#2E9038', transform: [{ rotate: '-38deg' }] }}>
-            <View style={{ position: 'absolute', top: 8, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.55)', borderRadius: 1 }} />
-            <View style={{ position: 'absolute', top: 18, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.45)', borderRadius: 1 }} />
-          </View>
-          <View style={{ position: 'absolute', top: '-38%', right: '18%', width: 13, height: 30, borderRadius: 6, backgroundColor: '#3AAA42', transform: [{ rotate: '32deg' }] }}>
-            <View style={{ position: 'absolute', top: 7, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.5)', borderRadius: 1 }} />
-            <View style={{ position: 'absolute', top: 16, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,65,20,0.4)', borderRadius: 1 }} />
-          </View>
-        </View>
-      );
-    case 'sakura':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Big cherry blossom above top-right */}
-          <View style={{ position: 'absolute', top: '-46%', right: '2%', transform: [{ rotate: '18deg' }] }}>
-            {[0, 72, 144, 216, 288].map((deg, j) => (
-              <View key={j} style={{ position: 'absolute', width: 15, height: 20, borderRadius: 7, backgroundColor: 'rgba(245,125,162,0.92)', transform: [{ rotate: `${deg}deg` }, { translateY: -13 }], transformOrigin: '7.5px 20px' as any }} />
-            ))}
-            <View style={{ width: 9, height: 9, borderRadius: 4.5, backgroundColor: 'rgba(255,215,55,0.98)' }} />
-          </View>
-          {/* Falling petal left */}
-          <View style={{ position: 'absolute', top: '-22%', left: '12%', width: 11, height: 14, borderRadius: 5, backgroundColor: 'rgba(245,128,163,0.75)', transform: [{ rotate: '35deg' }] }} />
-        </View>
-      );
-    case 'ichigo':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Strawberry calyx - 5 pointed leaves */}
-          {[{ r: '-58deg', l: '14%', t: '-40%' }, { r: '-28deg', l: '28%', t: '-46%' }, { r: '0deg', l: '42%', t: '-49%' }, { r: '28deg', l: '56%', t: '-46%' }, { r: '56deg', l: '68%', t: '-40%' }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: p.t as any, left: p.l as any, width: 12, height: 28, borderRadius: 6, backgroundColor: '#1E8C38', transform: [{ rotate: p.r }] }}>
-              <View style={{ position: 'absolute', top: 7, left: 2, right: 2, height: 2, backgroundColor: 'rgba(10,60,20,0.55)', borderRadius: 1 }} />
-            </View>
-          ))}
-        </View>
-      );
-    case 'kogeme':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Tall flames */}
-          <View style={{ position: 'absolute', top: '-46%', left: '20%', width: 15, height: 42, borderBottomLeftRadius: 7, borderBottomRightRadius: 7, borderTopLeftRadius: 15, borderTopRightRadius: 15, backgroundColor: '#FF6C08', transform: [{ rotate: '-12deg' }] }} />
-          <View style={{ position: 'absolute', top: '-55%', left: '37%', width: 13, height: 50, borderBottomLeftRadius: 6, borderBottomRightRadius: 6, borderTopLeftRadius: 13, borderTopRightRadius: 13, backgroundColor: '#FFAA08', transform: [{ rotate: '4deg' }] }} />
-          <View style={{ position: 'absolute', top: '-48%', left: '55%', width: 14, height: 44, borderBottomLeftRadius: 7, borderBottomRightRadius: 7, borderTopLeftRadius: 14, borderTopRightRadius: 14, backgroundColor: '#FF7A10', transform: [{ rotate: '16deg' }] }} />
-          {/* Bright inner flame */}
-          <View style={{ position: 'absolute', top: '-42%', left: '28%', width: 11, height: 32, borderRadius: 5.5, backgroundColor: 'rgba(255,225,45,0.65)', transform: [{ rotate: '-8deg' }] }} />
-          <View style={{ position: 'absolute', top: '-48%', left: '44%', width: 9, height: 36, borderRadius: 4.5, backgroundColor: 'rgba(255,225,45,0.6)', transform: [{ rotate: '5deg' }] }} />
-        </View>
-      );
-    case 'anko':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Sesame seeds on top */}
-          {[{ t: '-10%', l: '24%', r: '-15deg' }, { t: '-13%', l: '42%', r: '5deg' }, { t: '-10%', l: '59%', r: '20deg' }].map((p, i) => (
-            <View key={i} style={{ position: 'absolute', top: p.t as any, left: p.l as any, width: 7, height: 10, borderRadius: 3.5, backgroundColor: '#C0A828', transform: [{ rotate: p.r }] }} />
-          ))}
-        </View>
-      );
-    case 'sumi':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Smoke wisps - tall */}
-          <View style={{ position: 'absolute', top: '-42%', left: '18%', width: 11, height: 40, borderRadius: 5.5, backgroundColor: 'rgba(155,150,145,0.52)', transform: [{ rotate: '-16deg' }] }} />
-          <View style={{ position: 'absolute', top: '-50%', left: '38%', width: 9, height: 48, borderRadius: 4.5, backgroundColor: 'rgba(155,150,145,0.48)', transform: [{ rotate: '9deg' }] }} />
-          <View style={{ position: 'absolute', top: '-42%', left: '57%', width: 8, height: 36, borderRadius: 4, backgroundColor: 'rgba(155,150,145,0.43)', transform: [{ rotate: '26deg' }] }} />
-        </View>
-      );
-    case 'yuzu':
-      return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Big leaf sticking out */}
-          <View style={{ position: 'absolute', top: '-44%', right: '5%', width: 24, height: 42, borderRadius: 12, backgroundColor: '#30A840', transform: [{ rotate: '34deg' }] }}>
-            <View style={{ position: 'absolute', top: 9, left: 3, right: 3, height: 2, backgroundColor: 'rgba(15,75,22,0.55)', borderRadius: 1 }} />
-            <View style={{ position: 'absolute', top: 20, left: 3, right: 3, height: 2, backgroundColor: 'rgba(15,75,22,0.45)', borderRadius: 1 }} />
-            <View style={{ position: 'absolute', top: 30, left: 3, right: 3, height: 2, backgroundColor: 'rgba(15,75,22,0.38)', borderRadius: 1 }} />
-          </View>
-          <View style={{ position: 'absolute', top: '-36%', right: '24%', width: 17, height: 30, borderRadius: 8, backgroundColor: '#48C052', transform: [{ rotate: '-6deg' }] }}>
-            <View style={{ position: 'absolute', top: 8, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,75,22,0.48)', borderRadius: 1 }} />
-            <View style={{ position: 'absolute', top: 18, left: 2, right: 2, height: 2, backgroundColor: 'rgba(15,75,22,0.38)', borderRadius: 1 }} />
-          </View>
-        </View>
-      );
-    default:
-      return null;
+    case 'classic':  return <ClassicOutside />;
+    case 'honeybee': return <HoneyBeeOutside />;
+    case 'galaxy':   return <GalaxyOutside />;
+    case 'panda':    return <PandaOutside />;
+    case 'chocmint': return <ChocoMintOutside />;
+    case 'cloud':    return <CloudOutside />;
+    case 'tiger':    return <TigerOutside />;
+    case 'pudding':  return <PuddingOutside />;
+    default:         return <ClassicOutside />;
   }
 };
 
-// ─── Kawaii Mochi Face ───
+// ─────────────────────────────────────────────────────────────────────────────
+// Mochi Face
+// ─────────────────────────────────────────────────────────────────────────────
 export const MochiDrawnFace = ({ isDead, squishType, isHappy }: { isDead: boolean; squishType: 'tall' | 'wide' | 'normal'; isHappy: boolean }) => {
   if (isDead) {
     return (
@@ -270,7 +511,7 @@ export const MochiDrawnFace = ({ isDead, squishType, isHappy }: { isDead: boolea
             </View>
           ))}
         </View>
-        <Text style={{ fontSize: 18, color: '#8B7E74', marginTop: 2, fontWeight: '700' }}>～</Text>
+        <View style={{ marginTop: 4, width: 28, height: 5, backgroundColor: '#8B7E74', borderRadius: 3, transform: [{ scaleX: 1.4 }] }} />
       </View>
     );
   }
@@ -285,7 +526,9 @@ export const MochiDrawnFace = ({ isDead, squishType, isHappy }: { isDead: boolea
             </View>
           ))}
         </View>
-        <Text style={{ fontSize: squishType === 'wide' ? 16 : 18, color: '#C4907A', marginTop: squishType === 'tall' ? 4 : 0, fontWeight: '600' }}>▽</Text>
+        <View style={{ marginTop: squishType === 'tall' ? 5 : 2, width: squishType === 'wide' ? 22 : 18, height: 14, borderBottomLeftRadius: 12, borderBottomRightRadius: 12, backgroundColor: '#E09080', overflow: 'hidden' }}>
+          <View style={{ position: 'absolute', top: -10, left: 0, right: 0, height: 12, backgroundColor: '#E09080', borderRadius: 10 }} />
+        </View>
       </View>
     );
   }
@@ -296,13 +539,13 @@ export const MochiDrawnFace = ({ isDead, squishType, isHappy }: { isDead: boolea
     <View style={{ position: 'absolute', top: squishType === 'tall' ? '22%' : '30%', alignSelf: 'center', alignItems: 'center' }}>
       <View style={{ flexDirection: 'row', gap: eyeGap, alignItems: 'center' }}>
         {[0, 1].map(i => (
-          <View key={i} style={{ width: eyeW, height: eyeH, backgroundColor: '#4A3F35', borderRadius: eyeW / 2 }}>
+          <View key={i} style={{ width: eyeW, height: eyeH, backgroundColor: '#3A3028', borderRadius: eyeW / 2 }}>
             <View style={{ position: 'absolute', top: 3, left: 3, width: 6, height: 6, backgroundColor: '#FFF', borderRadius: 3 }} />
-            <View style={{ position: 'absolute', bottom: 4, right: 3, width: 3, height: 3, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 2 }} />
+            <View style={{ position: 'absolute', bottom: 4, right: 3, width: 3, height: 3, backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 1.5 }} />
           </View>
         ))}
       </View>
-      <Text style={{ fontSize: squishType === 'wide' ? 14 : 16, color: '#C4907A', marginTop: squishType === 'tall' ? 6 : 2, fontWeight: '600' }}>ω</Text>
+      <View style={{ marginTop: squishType === 'tall' ? 6 : 3, width: squishType === 'wide' ? 14 : 11, height: squishType === 'wide' ? 8 : 7, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, backgroundColor: '#C4907A' }} />
     </View>
   );
 };

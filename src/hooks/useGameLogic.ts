@@ -47,7 +47,7 @@ export function useGameLogic() {
   const [shopTab, setShopTab] = useState<'skins' | 'items' | 'coins'>('skins');
   const [earnedCoins, setEarnedCoins] = useState(0);
   const [adMultiplierUsed, setAdMultiplierUsed] = useState(false);
-  const [activeItems, setActiveItems] = useState<{ shield: boolean; slow: boolean; double: boolean }>({ shield: false, slow: false, double: false });
+  const [activeItems, setActiveItems] = useState<{ shield: boolean; slow: boolean }>({ shield: false, slow: false });
   const [adContinueCount, setAdContinueCount] = useState(0);
 
   // ─── Ad state ───
@@ -74,7 +74,6 @@ export function useGameLogic() {
   const [isHappy, setIsHappy] = useState(false);
   const [showShieldBreak, setShowShieldBreak] = useState(false);
   const [slowCount, setSlowCount] = useState(0);
-  const [doubleCount, setDoubleCount] = useState(0);
   const [itemPopup, setItemPopup] = useState<{ text: string; color: string } | null>(null);
   const [homeHappy, setHomeHappy] = useState(false);
 
@@ -91,7 +90,6 @@ export function useGameLogic() {
   const scoreCoinsRef = useRef(0);
   const shieldActiveRef = useRef(false);
   const slowCountRef = useRef(0);
-  const doubleCountRef = useRef(0);
   const happyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingInterstitialRef = useRef(false);
   const frameRef = useRef<number | undefined>(undefined);
@@ -431,15 +429,8 @@ export function useGameLogic() {
         playSound(popSfx, 0.7);
         triggerBurst(TARGETS[currentTS].color);
 
-        const isDouble = doubleCountRef.current > 0;
-        if (isDouble) {
-          doubleCountRef.current--;
-          setDoubleCount(doubleCountRef.current);
-          showItemPopup(t('popupDouble', langRef.current) as string, '#C4A030');
-        }
-
         setScore(s => {
-          const ns = s + (isDouble ? 2 : 1); scoreRef.current = ns;
+          const ns = s + 1; scoreRef.current = ns;
           if (ns % 3 === 0) {
             setLevel(l => {
               const newLvl = l + 1;
@@ -652,18 +643,15 @@ export function useGameLogic() {
     shieldAnim.setValue(0);
     slowCountRef.current = activeItems.slow ? 3 : 0;
     setSlowCount(slowCountRef.current);
-    doubleCountRef.current = activeItems.double ? 5 : 0;
-    setDoubleCount(doubleCountRef.current);
-    if (activeItems.shield || activeItems.slow || activeItems.double) {
+    if (activeItems.shield || activeItems.slow) {
       setInventory(prev => {
         const next = { ...prev };
         if (activeItems.shield) next.shield--;
         if (activeItems.slow) next.slow--;
-        if (activeItems.double) next.double--;
         AsyncStorage.setItem('inventory', JSON.stringify(next));
         return next;
       });
-      setActiveItems({ shield: false, slow: false, double: false });
+      setActiveItems({ shield: false, slow: false });
     }
   };
 
@@ -920,7 +908,7 @@ export function useGameLogic() {
     // Daily bonus
     dailyBonusShow, setDailyBonusShow, dailyBonusAmount, loginStreak,
     // In-game UI
-    hasShield, squishType, isHappy, showShieldBreak, slowCount, doubleCount, itemPopup,
+    hasShield, squishType, isHappy, showShieldBreak, slowCount, itemPopup,
     homeHappy,
     // Animated values
     heightAnim, widthAnim, fallAnim, popAnim, ringScaleAnim, ringOpacityAnim,

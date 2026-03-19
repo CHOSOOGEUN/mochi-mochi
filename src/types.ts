@@ -24,6 +24,6 @@ export type GameItem = {
   price: number;
 };
 
-export type Inventory = { shield: number; slow: number; double: number };
+export type Inventory = { shield: number; slow: number };
 
 export type GameScreenState = 'START' | 'PLAYING' | 'OVER' | 'SHOP';

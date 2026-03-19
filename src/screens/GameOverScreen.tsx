@@ -16,7 +16,7 @@ type Props = {
   adsRemoved: boolean;
   coins: number;
   inventory: Inventory;
-  activeItems: { shield: boolean; slow: boolean; double: boolean };
+  activeItems: { shield: boolean; slow: boolean };
   lang: Lang;
   gameOverSlideAnim: Animated.Value;
   statAnim0: Animated.Value;

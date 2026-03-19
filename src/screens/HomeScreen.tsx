@@ -13,7 +13,7 @@ type Props = {
   highScore: number;
   showTutorial: boolean;
   inventory: Inventory;
-  activeItems: { shield: boolean; slow: boolean; double: boolean };
+  activeItems: { shield: boolean; slow: boolean };
   adsRemoved: boolean;
   lang: Lang;
   furinSwayAnim: Animated.Value;

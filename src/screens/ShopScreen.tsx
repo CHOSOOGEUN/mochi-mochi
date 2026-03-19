@@ -4,7 +4,7 @@ import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { bannerAdUnitId } from '../ads';
 import { SKINS, GAME_ITEMS, IAP_BUNDLES, IAP_SKUS } from '../constants';
 import styles from '../styles';
-import { MochiPattern } from '../components/MochiCharacter';
+import { MochiPattern, MochiDecoration } from '../components/MochiCharacter';
 import { t, type Lang } from '../i18n';
 import type { Inventory, MochiSkin } from '../types';
 
@@ -109,6 +109,7 @@ export const ShopScreen: React.FC<Props> = ({
                     </View>
                     <Text style={styles.skinPreviewMouth}>ω</Text>
                   </View>
+                  <MochiDecoration skinId={skin.id} isDead={false} />
                 </View>
                 <Text style={styles.skinName}>{skin.name}</Text>
                 {selected ? (

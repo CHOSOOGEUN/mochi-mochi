@@ -227,11 +227,6 @@ export default function App() {
                   <Text style={{ fontSize: 16 }}>🐢 <Text style={{ fontSize: 14, fontWeight: '800', color: '#8DB580' }}>x{g.slowCount}</Text></Text>
                 </View>
               )}
-              {g.doubleCount > 0 && (
-                <View style={[styles.activeItemBadge, { backgroundColor: '#FFFDF0', borderColor: '#F0C75E' }]}>
-                  <Text style={{ fontSize: 16 }}>✨ <Text style={{ fontSize: 14, fontWeight: '800', color: '#C4A030' }}>x{g.doubleCount}</Text></Text>
-                </View>
-              )}
             </View>
 
             <View style={styles.popupArea}>

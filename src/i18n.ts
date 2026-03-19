@@ -58,8 +58,6 @@ const translations = {
     item_shield_desc: 'Block one hit',
     item_slow_name: 'Slow',
     item_slow_desc: 'Slows the target down',
-    item_double_name: 'Double',
-    item_double_desc: '2x score this game',
   },
   ko: {
     subtitleDrag: '드래그로 늘려요',
@@ -111,8 +109,6 @@ const translations = {
     item_shield_desc: '한 번 막아줘요',
     item_slow_name: '슬로우',
     item_slow_desc: '목표물을 느리게 해요',
-    item_double_name: '더블',
-    item_double_desc: '이번 게임 점수 2배',
   },
   ja: {
     subtitleDrag: '伸ばしてね',
@@ -164,8 +160,6 @@ const translations = {
     item_shield_desc: '一回だけ守ってくれる',
     item_slow_name: 'スロー',
     item_slow_desc: '目標をゆっくりにする',
-    item_double_name: 'ダブル',
-    item_double_desc: 'このゲームのスコア2倍',
   },
   zh: {
     subtitleDrag: '拖動來伸展',
@@ -217,8 +211,6 @@ const translations = {
     item_shield_desc: '擋住一次攻擊',
     item_slow_name: '減速',
     item_slow_desc: '讓目標變慢',
-    item_double_name: '雙倍',
-    item_double_desc: '本局分數x2',
   },
 } as const;
 
