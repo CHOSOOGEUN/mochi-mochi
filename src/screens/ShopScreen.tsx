@@ -98,15 +98,17 @@ export const ShopScreen: React.FC<Props> = ({
             const canBuy = coins >= skin.price;
             return (
               <View key={skin.id} style={[styles.skinCard, selected && styles.skinCardSelected]}>
-                <View style={[styles.skinPreview, { backgroundColor: skin.body, borderColor: skin.border }]}>
-                  <MochiPattern skinId={skin.id} isDead={false} />
-                  <View style={[styles.skinPreviewBlush, { backgroundColor: skin.blush, left: 10 }]} />
-                  <View style={[styles.skinPreviewBlush, { backgroundColor: skin.blush, right: 10 }]} />
-                  <View style={styles.skinPreviewEyes}>
-                    <View style={styles.skinPreviewEye} />
-                    <View style={styles.skinPreviewEye} />
+                <View style={styles.skinPreviewWrap}>
+                  <View style={[styles.skinPreview, { backgroundColor: skin.body, borderColor: skin.border }]}>
+                    <MochiPattern skinId={skin.id} isDead={false} />
+                    <View style={[styles.skinPreviewBlush, { backgroundColor: skin.blush, left: 10 }]} />
+                    <View style={[styles.skinPreviewBlush, { backgroundColor: skin.blush, right: 10 }]} />
+                    <View style={styles.skinPreviewEyes}>
+                      <View style={styles.skinPreviewEye} />
+                      <View style={styles.skinPreviewEye} />
+                    </View>
+                    <Text style={styles.skinPreviewMouth}>ω</Text>
                   </View>
-                  <Text style={styles.skinPreviewMouth}>ω</Text>
                 </View>
                 <Text style={styles.skinName}>{skin.name}</Text>
                 {selected ? (
