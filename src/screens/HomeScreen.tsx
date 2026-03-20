@@ -11,6 +11,9 @@ import type { Inventory } from '../types';
 type Props = {
   coins: number;
   highScore: number;
+  playerLevel: number;
+  playerXp: number;
+  soundEnabled: boolean;
   showTutorial: boolean;
   inventory: Inventory;
   activeItems: { shield: boolean; slow: boolean };
@@ -26,17 +29,26 @@ type Props = {
   onToggleItem: (id: keyof Inventory) => void;
   onBuyItem: (item: typeof GAME_ITEMS[0]) => void;
   onCycleLang: (lang?: Lang) => void;
+  onToggleSound: () => void;
 };
 
 export const HomeScreen: React.FC<Props> = ({
-  coins, highScore, showTutorial, inventory, activeItems, adsRemoved, lang,
+  coins, highScore, playerLevel, playerXp, soundEnabled, showTutorial, inventory, activeItems, adsRemoved, lang,
   furinSwayAnim, titleEntryAnim, titleShimmerAnim, playPulseAnim, screenFadeAnim,
-  onPlay, onShop, onToggleItem, onBuyItem, onCycleLang,
+  onPlay, onShop, onToggleItem, onBuyItem, onCycleLang, onToggleSound,
 }) => (
   <Animated.View style={[styles.homeScreen, { opacity: screenFadeAnim }]}>
     {/* Coin display */}
     <View style={styles.coinBar}>
       <Text style={styles.coinText}>🍡 {coins}</Text>
+    </View>
+
+    {/* Player level badge */}
+    <View style={styles.levelBar}>
+      <Text style={styles.levelText}>Lv.{playerLevel}</Text>
+      <View style={styles.xpBarBg}>
+        <View style={[styles.xpBarFill, { width: `${Math.min((playerXp / (playerLevel * 100)) * 100, 100)}%` as any }]} />
+      </View>
     </View>
 
     {/* Top decorative bar */}
@@ -151,8 +163,8 @@ export const HomeScreen: React.FC<Props> = ({
         <Text style={styles.shopBtnText}>{t('shop', lang) as string}</Text>
       </TouchableOpacity>
 
-      {/* Language selector */}
-      <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+      {/* Language selector + Sound toggle */}
+      <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, alignItems: 'center' }}>
         {LANG_CYCLE.map(l => (
           <TouchableOpacity
             key={l}
@@ -170,6 +182,18 @@ export const HomeScreen: React.FC<Props> = ({
             </Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity
+          onPress={onToggleSound}
+          activeOpacity={0.7}
+          style={{
+            width: 36, height: 36, borderRadius: 12, borderWidth: 1.5,
+            backgroundColor: soundEnabled ? 'rgba(200,80,112,0.1)' : 'rgba(180,160,150,0.15)',
+            borderColor: soundEnabled ? '#E8B4C2' : '#D4C4B0',
+            alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 16 }}>{soundEnabled ? '🔊' : '🔇'}</Text>
+        </TouchableOpacity>
       </View>
     </Animated.View>
 

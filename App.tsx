@@ -202,6 +202,58 @@ export default function App() {
           </Animated.View>
         )}
 
+        {/* Pause button */}
+        {g.gameState === 'PLAYING' && !g.isPaused && (
+          <TouchableOpacity
+            onPress={g.pauseGame}
+            activeOpacity={0.7}
+            style={{
+              position: 'absolute', top: Platform.OS === 'ios' ? 58 : 16, right: 16,
+              width: 40, height: 40, borderRadius: 20,
+              backgroundColor: 'rgba(255,249,240,0.88)', borderWidth: 2, borderColor: '#E0D0C0',
+              alignItems: 'center', justifyContent: 'center', zIndex: 300,
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>⏸</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Pause overlay */}
+        {g.gameState === 'PLAYING' && g.isPaused && (
+          <View style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(60,40,35,0.55)', alignItems: 'center', justifyContent: 'center', zIndex: 400,
+          }}>
+            <View style={{
+              backgroundColor: '#FFF9F0', borderRadius: 28, paddingHorizontal: 40, paddingVertical: 36,
+              alignItems: 'center', width: '75%', maxWidth: 300,
+              borderWidth: 3, borderColor: '#E8D8C8',
+              shadowColor: '#8A6A5A', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.3, shadowRadius: 30,
+            }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 4, marginBottom: 8 }}>⏸ PAUSED</Text>
+              <View style={{ width: 48, height: 2, backgroundColor: '#E8D8C8', borderRadius: 1, marginBottom: 24 }} />
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={g.resumeGame}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.retryButtonText, { letterSpacing: 2 }]}>{t('resume', L) as string}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.homeBtn, { marginTop: 12 }]} onPress={g.goHome} activeOpacity={0.85}>
+                <Text style={styles.homeBtnText}>{t('home', L) as string}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={g.toggleSound}
+                activeOpacity={0.7}
+                style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Text style={{ fontSize: 18 }}>{g.soundEnabled ? '🔊' : '🔇'}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#C4B5A5' }}>{g.soundEnabled ? 'ON' : 'OFF'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* HUD */}
         {g.gameState === 'PLAYING' && (
           <Animated.View style={[styles.headsUpLayer, { opacity: g.screenFadeAnim }]} pointerEvents="none">
@@ -260,6 +312,8 @@ export default function App() {
           <HomeScreen
             coins={g.coins}
             highScore={g.highScore}
+            playerLevel={g.playerLevel}
+            playerXp={g.playerXp}
             showTutorial={g.showTutorial}
             inventory={g.inventory}
             activeItems={g.activeItems}
@@ -275,6 +329,8 @@ export default function App() {
             onCycleLang={g.cycleLang}
             onToggleItem={g.toggleActiveItem}
             onBuyItem={g.buyItem}
+            soundEnabled={g.soundEnabled}
+            onToggleSound={g.toggleSound}
           />
         )}
 
@@ -336,8 +392,11 @@ export default function App() {
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#C4B5A5', letterSpacing: 3, marginBottom: 4 }}>{t('dailyBonus', L) as string}</Text>
               <Text style={{ fontSize: 48, fontWeight: '900', color: '#F0C75E' }}>+{g.dailyBonusAmount}</Text>
               <Text style={{ fontSize: 20, fontWeight: '700', color: '#4A3F35', marginBottom: 4 }}>🍡</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 }}>
+              <View style={{ alignItems: 'center', gap: 4, marginBottom: 20 }}>
                 <Text style={{ fontSize: 13, color: '#8B7E74', fontWeight: '600' }}>{(t('streak', L) as (n: number) => string)(g.loginStreak)}</Text>
+                <Text style={{ fontSize: 12, color: '#C85070', fontWeight: '700' }}>
+                  {(t('streakNext', L) as (n: number) => string)(g.loginStreak >= 3 ? 25 : g.loginStreak === 2 ? 20 : 15)}
+                </Text>
               </View>
               <TouchableOpacity style={styles.dailyBonusBtn} onPress={() => g.setDailyBonusShow(false)} activeOpacity={0.85}>
                 <Text style={styles.dailyBonusBtnText}>{t('claim', L) as string}</Text>

@@ -4,7 +4,7 @@ import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { bannerAdUnitId } from '../ads';
 import { SKINS, GAME_ITEMS, IAP_BUNDLES, IAP_SKUS } from '../constants';
 import styles from '../styles';
-import { MochiPattern, MochiDecoration } from '../components/MochiCharacter';
+import { MochiPattern, MochiDecoration, MochiDrawnFace } from '../components/MochiCharacter';
 import { t, type Lang } from '../i18n';
 import type { Inventory, MochiSkin } from '../types';
 
@@ -98,18 +98,17 @@ export const ShopScreen: React.FC<Props> = ({
             const canBuy = coins >= skin.price;
             return (
               <View key={skin.id} style={[styles.skinCard, selected && styles.skinCardSelected]}>
-                <View style={styles.skinPreviewWrap}>
-                  <View style={[styles.skinPreview, { backgroundColor: skin.body, borderColor: skin.border }]}>
-                    <MochiPattern skinId={skin.id} isDead={false} />
-                    <View style={[styles.skinPreviewBlush, { backgroundColor: skin.blush, left: 10 }]} />
-                    <View style={[styles.skinPreviewBlush, { backgroundColor: skin.blush, right: 10 }]} />
-                    <View style={styles.skinPreviewEyes}>
-                      <View style={styles.skinPreviewEye} />
-                      <View style={styles.skinPreviewEye} />
+                <View style={[styles.skinPreviewWrap, { justifyContent: 'center', alignItems: 'center' }]}>
+                  {/* Scale down a full 140x140 Mochi to match the preview size perfectly */}
+                  <View style={{ width: 140, height: 140, transform: [{ scale: 0.55 }] }}>
+                    <View style={{ flex: 1, backgroundColor: skin.body, borderRadius: 999, borderWidth: 4, borderColor: skin.border, overflow: 'hidden' }}>
+                      <MochiPattern skinId={skin.id} isDead={false} />
+                      <View style={{ position: 'absolute', top: '42%', left: '10%', width: 18, height: 10, borderRadius: 5, backgroundColor: skin.blush }} />
+                      <View style={{ position: 'absolute', top: '42%', right: '10%', width: 18, height: 10, borderRadius: 5, backgroundColor: skin.blush }} />
+                      <MochiDrawnFace isDead={false} squishType="normal" isHappy={false} />
                     </View>
-                    <Text style={styles.skinPreviewMouth}>ω</Text>
+                    <MochiDecoration skinId={skin.id} isDead={false} />
                   </View>
-                  <MochiDecoration skinId={skin.id} isDead={false} />
                 </View>
                 <Text style={styles.skinName}>{skin.name}</Text>
                 {selected ? (

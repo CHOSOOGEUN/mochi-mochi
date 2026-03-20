@@ -41,13 +41,13 @@ export const IAP_BUNDLES = [
 // ─── Skin System ───
 export const SKINS: MochiSkin[] = [
   { id: 'classic',  name: 'Classic',    body: '#FFF8F2', border: '#EAD5C2', shadow: '#C8B09A', blush: 'rgba(240,160,145,0.38)', deadBody: '#EDE4DA', deadBorder: '#C8B8A8', price: 0 },
-  { id: 'honeybee', name: 'Honey Bee',  body: '#FFE040', border: '#E8B010', shadow: '#C88800', blush: 'rgba(255,165,20,0.4)',   deadBody: '#E8D490', deadBorder: '#C0A030', price: 150 },
-  { id: 'galaxy',   name: 'Galaxy',     body: '#100825', border: '#260C50', shadow: '#4A1E8A', blush: 'rgba(130,50,230,0.3)',   deadBody: '#1C1230', deadBorder: '#281640', price: 400 },
-  { id: 'panda',    name: 'Panda',      body: '#F6F5F0', border: '#D8D4CC', shadow: '#B0ACA4', blush: 'rgba(255,155,175,0.5)',  deadBody: '#E8E6E0', deadBorder: '#C4C0B8', price: 800 },
-  { id: 'chocmint', name: 'Choco Mint', body: '#C2EED6', border: '#7AC8A0', shadow: '#50A87A', blush: 'rgba(55,185,120,0.32)', deadBody: '#B0D4C0', deadBorder: '#88AE98', price: 1300 },
-  { id: 'cloud',    name: 'Cloud',      body: '#D6EEFF', border: '#9CC4F0', shadow: '#70A4E0', blush: 'rgba(95,155,238,0.32)', deadBody: '#C6D8EC', deadBorder: '#8EB0D0', price: 2000 },
-  { id: 'tiger',    name: 'Tiger',      body: '#FF9620', border: '#D85A08', shadow: '#A84000', blush: 'rgba(215,75,10,0.36)',   deadBody: '#D8B890', deadBorder: '#B08050', price: 3000 },
-  { id: 'pudding',  name: 'Pudding',    body: '#FFF0A0', border: '#E0C02A', shadow: '#C0A010', blush: 'rgba(238,190,28,0.4)',   deadBody: '#E8DFA8', deadBorder: '#C4B63A', price: 5000 },
+  { id: 'panda',    name: 'Panda',      body: '#F6F5F0', border: '#D8D4CC', shadow: '#B0ACA4', blush: 'rgba(255,155,175,0.5)',  deadBody: '#E8E6E0', deadBorder: '#C4C0B8', price: 150 },
+  { id: 'tiger',    name: 'Tiger',      body: '#FF9620', border: '#D85A08', shadow: '#A84000', blush: 'rgba(215,75,10,0.36)',   deadBody: '#D8B890', deadBorder: '#B08050', price: 400 },
+  { id: 'cloud',    name: 'Cloud',      body: '#D6EEFF', border: '#9CC4F0', shadow: '#70A4E0', blush: 'rgba(95,155,238,0.32)', deadBody: '#C6D8EC', deadBorder: '#8EB0D0', price: 800 },
+  { id: 'ichigo',   name: 'Ichigo',     body: '#FF5570', border: '#D82848', shadow: '#B01030', blush: 'rgba(255,80,90,0.38)',  deadBody: '#D4A0A8', deadBorder: '#B08090', price: 1300 },
+  { id: 'pudding',  name: 'Pudding',    body: '#FFF0A0', border: '#E0C02A', shadow: '#C0A010', blush: 'rgba(238,190,28,0.4)',  deadBody: '#E8DFA8', deadBorder: '#C4B63A', price: 2000 },
+  { id: 'honeybee', name: 'Honey Bee',  body: '#FFE040', border: '#E8B010', shadow: '#C88800', blush: 'rgba(255,165,20,0.4)',  deadBody: '#E8D490', deadBorder: '#C0A030', price: 3000 },
+  { id: 'galaxy',   name: 'Galaxy',     body: '#100825', border: '#260C50', shadow: '#4A1E8A', blush: 'rgba(130,50,230,0.3)',  deadBody: '#1C1230', deadBorder: '#281640', price: 5000 },
 ];
 
 // ─── Game Items ───

@@ -62,6 +62,24 @@ export function useGameLogic() {
   // ─── Language ───
   const [lang, setLang] = useState<Lang>('en');
 
+  // ─── Sound ───
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const soundEnabledRef = useRef(true);
+
+  // ─── Player level (persistent across games) ───
+  const [playerLevel, setPlayerLevel] = useState(1);
+  const [playerXp, setPlayerXp] = useState(0);
+  const playerLevelRef = useRef(1);
+  const playerXpRef = useRef(0);
+
+  // ─── Pause ───
+  const [isPaused, setIsPaused] = useState(false);
+  const isPausedRef = useRef(false);
+  const pausedFallValueRef = useRef(0);
+  const fallEndValRef = useRef(0);
+  const fallStartValRef = useRef(0);
+  const fallTotalDurRef = useRef(0);
+
   // ─── Daily bonus ───
   const [dailyBonusShow, setDailyBonusShow] = useState(false);
   const [dailyBonusAmount, setDailyBonusAmount] = useState(0);
@@ -155,6 +173,7 @@ export function useGameLogic() {
   const shieldSfx = useAudioPlayer(require('../../assets/audio/shield.mp3'));
 
   const playSound = (player: ReturnType<typeof useAudioPlayer>, volume = 1.0) => {
+    if (!soundEnabledRef.current) return;
     player.volume = volume;
     player.seekTo(0).then(() => player.play()).catch(() => { });
   };
@@ -165,9 +184,10 @@ export function useGameLogic() {
   }, []);
 
   useEffect(() => {
-    if (gameState === 'PLAYING') bgmPlayer.play();
-    else bgmPlayer.pause();
-  }, [gameState]);
+    if (!soundEnabled) { bgmPlayer.pause(); return; }
+    if (gameState === 'OVER') bgmPlayer.pause();
+    else bgmPlayer.play();
+  }, [gameState, soundEnabled]);
 
   // ─── Ad setup ───
   useEffect(() => {
@@ -237,6 +257,15 @@ export function useGameLogic() {
     AsyncStorage.getItem('inventory').then(val => { if (val) setInventory(JSON.parse(val)); }).catch(() => {});
     AsyncStorage.getItem('adsRemoved').then(val => { if (val === 'true') setAdsRemoved(true); }).catch(() => {});
     AsyncStorage.getItem('lang').then(val => { if (val) setLang(val as Lang); }).catch(() => {});
+    AsyncStorage.getItem('soundEnabled').then(val => {
+      if (val === 'false') { setSoundEnabled(false); soundEnabledRef.current = false; }
+    }).catch(() => {});
+    AsyncStorage.multiGet(['playerLevel', 'playerXp']).then(pairs => {
+      const lv = pairs[0][1] ? parseInt(pairs[0][1], 10) : 1;
+      const xp = pairs[1][1] ? parseInt(pairs[1][1], 10) : 0;
+      setPlayerLevel(lv); playerLevelRef.current = lv;
+      setPlayerXp(xp); playerXpRef.current = xp;
+    }).catch(() => {});
 
     const today = new Date().toDateString();
     AsyncStorage.getItem('watchAdDate').then(date => {
@@ -399,6 +428,7 @@ export function useGameLogic() {
   const checkCollisionRef = useRef<() => void>(undefined);
   checkCollisionRef.current = () => {
     if (gameStateRef.current !== 'PLAYING') return;
+    if (isPausedRef.current) return;
 
     const curVal = (fallAnim as any)._value as number;
     const dir = directionRef.current;
@@ -575,6 +605,19 @@ export function useGameLogic() {
           const earned = scoreCoinsRef.current + comboCoinsRef.current;
           setEarnedCoins(earned);
 
+          // ─── Player XP / Level ───
+          let newXp = playerXpRef.current + fs;
+          let newLv = playerLevelRef.current;
+          while (newXp >= newLv * 100) {
+            newXp -= newLv * 100;
+            newLv += 1;
+          }
+          playerXpRef.current = newXp;
+          playerLevelRef.current = newLv;
+          setPlayerXp(newXp);
+          setPlayerLevel(newLv);
+          AsyncStorage.multiSet([['playerLevel', String(newLv)], ['playerXp', String(newXp)]]).catch(() => {});
+
           AsyncStorage.getItem('highScore').then(val => {
             const prev = val ? parseInt(val, 10) : 0;
             if (fs > prev) {
@@ -623,6 +666,10 @@ export function useGameLogic() {
       showItemPopup(t('popupSlow', langRef.current) as string, '#8DB580');
     }
 
+    fallStartValRef.current = startVal;
+    fallEndValRef.current = endVal;
+    fallTotalDurRef.current = dur;
+
     Animated.timing(fallAnim, { toValue: endVal, duration: dur, easing: Easing.linear, useNativeDriver: false }).start(({ finished }) => {
       if (finished && gameStateRef.current === 'PLAYING') {
         const nextTarget = TARGET_TYPES[Math.floor(Math.random() * TARGET_TYPES.length)];
@@ -657,6 +704,8 @@ export function useGameLogic() {
 
   // ─── Game flow ───
   const startGame = () => {
+    isPausedRef.current = false;
+    setIsPaused(false);
     gameStateRef.current = 'PLAYING';
     passedRef.current = false;
     scoreRef.current = 0;
@@ -688,7 +737,40 @@ export function useGameLogic() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
+  const pauseGame = () => {
+    if (gameStateRef.current !== 'PLAYING' || isPausedRef.current) return;
+    isPausedRef.current = true;
+    setIsPaused(true);
+    if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    fallAnim.stopAnimation(val => { pausedFallValueRef.current = val; });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const resumeGame = () => {
+    if (gameStateRef.current !== 'PLAYING' || !isPausedRef.current) return;
+    isPausedRef.current = false;
+    setIsPaused(false);
+    const cur = pausedFallValueRef.current;
+    const end = fallEndValRef.current;
+    const start = fallStartValRef.current;
+    const totalDist = Math.abs(end - start);
+    const remainDist = Math.abs(end - cur);
+    const remainDur = totalDist > 0 ? (remainDist / totalDist) * fallTotalDurRef.current : 600;
+    Animated.timing(fallAnim, { toValue: end, duration: remainDur, easing: Easing.linear, useNativeDriver: false }).start(({ finished }) => {
+      if (finished && gameStateRef.current === 'PLAYING') {
+        const nextTarget = TARGET_TYPES[Math.floor(Math.random() * TARGET_TYPES.length)];
+        setTargetShape(nextTarget);
+        targetShapeRef.current = nextTarget;
+        startFallRef.current?.();
+      }
+    });
+    frameRef.current = requestAnimationFrame(() => checkCollisionRef.current?.());
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
   const goHome = () => {
+    isPausedRef.current = false;
+    setIsPaused(false);
     screenFadeAnim.setValue(0);
     Animated.timing(screenFadeAnim, { toValue: 1, duration: 300, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
     setGameState('START'); setScore(0); setLevel(1); setCombo(0); setBestCombo(0);
@@ -863,10 +945,10 @@ export function useGameLogic() {
 
   // ─── Pan responder ───
   const panResponder = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => gameStateRef.current === 'PLAYING',
-    onMoveShouldSetPanResponder: () => gameStateRef.current === 'PLAYING',
+    onStartShouldSetPanResponder: () => gameStateRef.current === 'PLAYING' && !isPausedRef.current,
+    onMoveShouldSetPanResponder: () => gameStateRef.current === 'PLAYING' && !isPausedRef.current,
     onPanResponderMove: (_, gs) => {
-      if (gameStateRef.current !== 'PLAYING') return;
+      if (gameStateRef.current !== 'PLAYING' || isPausedRef.current) return;
       let newH = BASE_DIM - gs.dy * 1.5;
       heightAnim.setValue(Math.max(MIN_DIM, Math.min(MAX_DIM, newH)));
     },
@@ -876,6 +958,14 @@ export function useGameLogic() {
       triggerWobble();
     },
   })).current;
+
+  const toggleSound = useCallback(() => {
+    const next = !soundEnabledRef.current;
+    soundEnabledRef.current = next;
+    setSoundEnabled(next);
+    AsyncStorage.setItem('soundEnabled', String(next));
+    if (next) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
 
   const cycleLang = useCallback((targetLang?: Lang) => {
     const next = targetLang ?? LANG_CYCLE[(LANG_CYCLE.indexOf(langRef.current) + 1) % LANG_CYCLE.length];
@@ -899,6 +989,7 @@ export function useGameLogic() {
   return {
     // Game state
     gameState, score, level, combo, bestCombo, targetShape, highScore,
+    playerLevel, playerXp,
     showTutorial, showBurst, burstColor, displayScore,
     // Economy
     coins, selectedSkinId, unlockedSkinIds, inventory, shopTab, setShopTab,
@@ -922,11 +1013,15 @@ export function useGameLogic() {
     // Derived
     currentSkin, isDead, currentTarget, appBgColor,
     wobbleRotate, shakeX, targetRotate, idleScale, idleY,
+    // Pause
+    isPaused, pauseGame, resumeGame,
     // Handlers
     startGame, goHome, continueFromAd, multiplyCoinsFromAd,
     buySkin, selectSkin, buyItem, toggleActiveItem, watchAdForCoins, buyIap,
     handleHomeTap, setGameState,
     panResponder,
+    // Sound
+    soundEnabled, toggleSound,
     // Language
     lang, cycleLang,
   };
